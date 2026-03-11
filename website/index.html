@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitMyTime — Smart Workout Scheduling for Busy People</title>
   <meta name="description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
+
+  <!-- #5 Open Graph / Twitter Card meta tags -->
+  <meta property="og:title" content="FitMyTime — Smart Workout Scheduling for Busy People">
+  <meta property="og:description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fitmytime.app">
+  <meta property="og:image" content="/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FitMyTime — Smart Workout Scheduling for Busy People">
+  <meta name="twitter:description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
+
+  <!-- #7 Favicon — inline SVG data URI -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563EB'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='white' font-family='sans-serif' font-size='20' font-weight='bold'>F</text></svg>">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
@@ -32,6 +46,8 @@
       --green-light: #ECFDF5;
       --amber: #F59E0B;
       --amber-light: #FFFBEB;
+      --red: #EF4444;
+      --red-light: #FEF2F2;
       --font-display: 'Bricolage Grotesque', Georgia, serif;
       --font-body: 'DM Sans', -apple-system, sans-serif;
       --font-serif: 'Source Serif 4', Georgia, serif;
@@ -47,6 +63,11 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+    }
+
+    /* #6 Scroll margin for section targets */
+    #features, #how, #comparison, #stats-section, #reviews, #faq, #cta {
+      scroll-margin-top: 90px;
     }
 
     /* ===== NAV ===== */
@@ -101,6 +122,7 @@
       gap: 36px;
       list-style: none;
     }
+    /* #14 Link hover underline animation */
     .nav-links a {
       font-family: var(--font-body);
       color: var(--text-soft);
@@ -108,6 +130,20 @@
       font-size: 15px;
       font-weight: 500;
       transition: color 0.25s;
+      position: relative;
+    }
+    .nav-links a.nav-text::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 2px;
+      background: var(--blue);
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .nav-links a.nav-text:hover::after {
+      width: 100%;
     }
     .nav-links a:hover { color: var(--text); }
     .nav-cta {
@@ -123,6 +159,81 @@
       background: var(--blue-hover) !important;
       transform: translateY(-1px);
       box-shadow: 0 4px 16px rgba(37,99,235,0.28) !important;
+    }
+
+    /* #4 Mobile hamburger menu */
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      z-index: 110;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2.5px;
+      background: var(--text);
+      border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .hamburger.active span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 72px;
+      left: 0; right: 0;
+      background: var(--cream);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      z-index: 99;
+      transform: translateY(-100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .mobile-menu.open {
+      transform: translateY(0);
+    }
+    .mobile-menu ul {
+      list-style: none;
+      padding: 16px 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .mobile-menu a {
+      display: block;
+      padding: 14px 16px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-mid);
+      text-decoration: none;
+      border-radius: 10px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .mobile-menu a:hover {
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+    .mobile-menu .mobile-cta {
+      display: block;
+      text-align: center;
+      margin: 8px 16px 0;
+      padding: 14px;
+      background: var(--blue);
+      color: var(--white);
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
     }
 
     /* ===== HERO ===== */
@@ -222,15 +333,29 @@
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     }
+    /* #15 CTA button ripple container */
     .btn-primary {
       background: var(--blue);
       color: var(--white);
       box-shadow: 0 4px 16px rgba(37,99,235,0.25);
+      position: relative;
+      overflow: hidden;
     }
     .btn-primary:hover {
       background: var(--blue-hover);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+    }
+    .btn-ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+      transform: scale(0);
+      animation: rippleAnim 0.6s ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes rippleAnim {
+      to { transform: scale(4); opacity: 0; }
     }
     .btn-ghost {
       background: transparent;
@@ -334,6 +459,7 @@
       background: white;
       border-radius: 2px;
     }
+    /* #1 Interactive mockup tabs */
     .m-tabs {
       display: flex;
       background: #f8f9fb;
@@ -347,13 +473,25 @@
       color: var(--text-faint);
       text-align: center;
       border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      user-select: none;
     }
     .m-tab.active {
       color: var(--blue);
       border-bottom-color: var(--blue);
       background: white;
     }
-    .m-body { padding: 14px; }
+    .m-body { padding: 14px; position: relative; }
+    .m-tab-content {
+      transition: opacity 0.3s ease;
+    }
+    .m-tab-content.fade-out {
+      opacity: 0;
+    }
+    .m-tab-content.fade-in {
+      opacity: 1;
+    }
     .m-card {
       background: #f8f9fb;
       border: 1px solid var(--border);
@@ -420,6 +558,88 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 14px;
+    }
+    /* History tab mockup styles */
+    .m-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .m-history-item:last-child { border-bottom: none; }
+    .m-history-name { font-size: 12px; font-weight: 600; color: var(--text-mid); }
+    .m-history-date { font-size: 10px; color: var(--text-faint); }
+    .m-history-stars { font-size: 10px; color: var(--amber); letter-spacing: 1px; }
+    .m-history-summary {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      padding: 10px 0;
+      margin-bottom: 8px;
+      background: var(--blue-light);
+      border-radius: 8px;
+    }
+    .m-history-stat-val { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--blue); }
+    .m-history-stat-label { font-size: 9px; color: var(--text-faint); text-transform: uppercase; }
+    /* Calendar tab mockup styles */
+    .m-cal-month { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text); text-align: center; margin-bottom: 8px; }
+    .m-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      text-align: center;
+      font-size: 10px;
+    }
+    .m-cal-day-label { font-weight: 600; color: var(--text-faint); font-size: 9px; padding: 4px 0; }
+    .m-cal-day {
+      padding: 5px 0;
+      border-radius: 6px;
+      color: var(--text-mid);
+    }
+    .m-cal-day.empty { visibility: hidden; }
+    .m-cal-day.workout {
+      background: var(--blue);
+      color: white;
+      font-weight: 600;
+    }
+    .m-cal-day.today {
+      border: 1.5px solid var(--blue);
+      font-weight: 600;
+    }
+    /* Settings tab mockup styles */
+    .m-settings-group { margin-bottom: 10px; }
+    .m-settings-label { font-size: 10px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .m-settings-value {
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      color: var(--text-mid);
+    }
+    .m-settings-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .m-settings-toggle-label { font-size: 12px; color: var(--text-mid); }
+    .m-settings-toggle-switch {
+      width: 32px; height: 18px;
+      background: var(--green);
+      border-radius: 9px;
+      position: relative;
+    }
+    .m-settings-toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      right: 2px;
     }
 
     /* Annotation labels */
@@ -627,6 +847,94 @@
       margin: 0 auto;
     }
 
+    /* ===== #3 BEFORE/AFTER COMPARISON ===== */
+    .comparison {
+      padding: 120px 32px;
+      background: var(--white);
+      position: relative;
+    }
+    .comparison-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      align-items: stretch;
+    }
+    .comparison-col {
+      padding: 40px;
+      border-radius: 20px;
+    }
+    .comparison-col-without {
+      background: var(--red-light);
+      border: 1px solid #FECACA;
+    }
+    .comparison-col-with {
+      background: var(--green-light);
+      border: 1px solid #A7F3D0;
+    }
+    .comparison-col h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .comparison-col-without h3 { color: #B91C1C; }
+    .comparison-col-with h3 { color: #047857; }
+    .comparison-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .comparison-item:last-child { margin-bottom: 0; }
+    .comparison-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .comparison-icon-x {
+      background: #FCA5A5;
+      color: #B91C1C;
+    }
+    .comparison-icon-check {
+      background: #6EE7B7;
+      color: #047857;
+    }
+    .comparison-item p {
+      font-size: 15px;
+      color: var(--text-mid);
+      line-height: 1.55;
+    }
+    .comparison-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+    }
+    .comparison-vs {
+      width: 48px; height: 48px;
+      background: var(--dark);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
     /* ===== STATS ===== */
     .stats {
       padding: 80px 32px;
@@ -747,6 +1055,88 @@
       color: var(--text-faint);
     }
 
+    /* ===== #2 FAQ ACCORDION ===== */
+    .faq {
+      padding: 120px 32px;
+      background: var(--cream);
+      position: relative;
+    }
+    .faq::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .faq-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .faq-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.3s;
+    }
+    .faq-item:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    .faq-question {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      gap: 16px;
+    }
+    .faq-question:hover { color: var(--blue); }
+    .faq-toggle {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: transform 0.3s, background 0.3s;
+      line-height: 1;
+    }
+    .faq-item.open .faq-toggle {
+      transform: rotate(45deg);
+      background: var(--blue);
+      color: var(--white);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.4s;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 200px;
+    }
+    .faq-answer-text {
+      padding: 0 24px 20px;
+      font-size: 15px;
+      color: var(--text-soft);
+      line-height: 1.7;
+    }
+
     /* ===== CTA ===== */
     .cta {
       padding: 120px 32px;
@@ -841,6 +1231,42 @@
       color: rgba(255,255,255,0.25);
     }
 
+    /* ===== #12 BACK TO TOP BUTTON ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 48px;
+      height: 48px;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px);
+      transition: opacity 0.3s, visibility 0.3s, transform 0.3s, background 0.2s;
+      z-index: 90;
+    }
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .back-to-top:hover {
+      background: var(--blue-hover);
+      transform: translateY(-2px);
+    }
+    .back-to-top svg {
+      width: 20px;
+      height: 20px;
+    }
+
     /* ===== REVEAL ANIMATION ===== */
     .reveal {
       opacity: 0;
@@ -874,6 +1300,31 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* #8 Subtle grain/noise overlay */
+    .noise-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.035;
+    }
+
+    /* #10 Focus-visible styles */
+    :focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+    .nav-cta:focus-visible {
+      outline-color: var(--blue);
+      outline-offset: 3px;
+    }
+    .bento-card:focus-visible,
+    .t-card:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 960px) {
       .hero-inner { grid-template-columns: 1fr; text-align: center; }
@@ -889,25 +1340,93 @@
       .steps-row::before { display: none; }
       .testimonials-grid { grid-template-columns: 1fr 1fr; }
       .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .comparison-grid { grid-template-columns: 1fr; gap: 16px; }
+      .comparison-divider { padding: 8px 0; }
+      /* #4 Show hamburger, hide nav links */
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .mobile-menu { display: block; }
     }
     @media (max-width: 640px) {
       .hero { padding: 120px 20px 80px; }
-      .features, .how, .testimonials, .cta { padding: 80px 20px; }
+      .features, .how, .testimonials, .cta, .faq, .comparison { padding: 72px 20px; }
       .stats { padding: 56px 20px; }
-      .bento { grid-template-columns: 1fr; }
+      .bento { grid-template-columns: 1fr; gap: 12px; }
+      .bento-card { padding: 24px; }
       .bento-card.wide { grid-column: span 1; }
-      .testimonials-grid { grid-template-columns: 1fr; }
-      .stats-inner { grid-template-columns: 1fr; }
-      .nav-links .nav-text { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr; gap: 16px; }
+      .t-card { padding: 24px; }
+      .stats-inner { grid-template-columns: 1fr; gap: 32px; }
       .nav-inner { padding: 0 20px; }
-      .mockup { width: 310px; }
+      .mockup { width: 300px; }
       .footer-inner { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; flex-wrap: wrap; }
+      .footer-links { justify-content: center; flex-wrap: wrap; gap: 16px; }
       .hero-trust { flex-direction: column; gap: 8px; }
+      /* Stack hero CTA buttons full-width */
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .hero-actions .btn { justify-content: center; }
+      /* Reduce comparison col padding */
+      .comparison-col { padding: 24px; }
+      /* Section header spacing */
+      .section-header { margin-bottom: 36px; }
+      .section-header-center .section-desc { font-size: 15px; }
+      /* FAQ touch-friendly */
+      .faq-question { padding: 16px 20px; font-size: 15px; }
+      .faq-answer-text { padding: 0 20px 16px; font-size: 14px; }
+      /* Reduce step gap */
+      .steps-row { gap: 32px; }
+      .step-item p { font-size: 14px; }
+      /* CTA section */
+      .cta-inner .btn { width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 400px) {
+      .hero { padding: 108px 16px 64px; }
+      .features, .how, .testimonials, .cta, .faq, .comparison { padding: 56px 16px; }
+      .stats { padding: 48px 16px; }
+      .nav-inner { padding: 0 16px; }
+      .mobile-menu ul { padding: 12px 16px 20px; }
+      .mockup { width: 270px; }
+      .hero h1 { font-size: clamp(32px, 9vw, 44px); }
+      .bento-card { padding: 20px; }
+      .t-card { padding: 20px; }
+      .comparison-col { padding: 18px; }
+      .comparison-item p { font-size: 14px; }
+      .stat-item h3 { font-size: clamp(28px, 10vw, 44px); }
+      .footer-inner { padding: 0; }
+      footer { padding: 40px 16px; }
+      .back-to-top { bottom: 20px; right: 20px; width: 42px; height: 42px; }
+    }
+
+    /* #9 Prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .hero-anim {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .mockup {
+        animation: none !important;
+      }
     }
   </style>
 </head>
 <body>
+
+  <!-- #8 SVG noise filter definition (hidden) -->
+  <svg style="position:absolute;width:0;height:0;">
+    <filter id="noiseFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    </filter>
+  </svg>
 
   <!-- NAV -->
   <nav id="nav">
@@ -922,11 +1441,32 @@
         <li><a href="#reviews" class="nav-text">Reviews</a></li>
         <li><a href="#cta" class="nav-cta">Add to Chrome</a></li>
       </ul>
+      <!-- #4 Hamburger button -->
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </nav>
 
+  <!-- #4 Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="#features" class="mobile-nav-link">Features</a></li>
+      <li><a href="#how" class="mobile-nav-link">How It Works</a></li>
+      <li><a href="#reviews" class="mobile-nav-link">Reviews</a></li>
+      <li><a href="#faq" class="mobile-nav-link">FAQ</a></li>
+    </ul>
+    <a href="#cta" class="mobile-cta mobile-nav-link">Add to Chrome</a>
+  </div>
+
   <!-- HERO -->
   <section class="hero">
+    <!-- #8 Noise overlay -->
+    <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+    </svg>
     <div class="hero-inner">
       <div class="hero-text">
         <div class="hero-pill hero-anim">
@@ -965,7 +1505,7 @@
           <span class="annotation-dot"></span>
           <span class="annotation-label">Smart scheduling</span>
         </div>
-        <div class="mockup">
+        <div class="mockup" id="mockup">
           <div class="m-header">
             <div class="m-title">FitMyTime</div>
             <div class="m-meta">
@@ -977,32 +1517,35 @@
               <div class="m-bar-track"><div class="m-bar-fill"></div></div>
             </div>
           </div>
-          <div class="m-tabs">
-            <span class="m-tab active">Upcoming</span>
-            <span class="m-tab">History</span>
-            <span class="m-tab">Calendar</span>
-            <span class="m-tab">Settings</span>
+          <div class="m-tabs" id="mockupTabs">
+            <span class="m-tab active" data-tab="upcoming">Upcoming</span>
+            <span class="m-tab" data-tab="history">History</span>
+            <span class="m-tab" data-tab="calendar">Calendar</span>
+            <span class="m-tab" data-tab="settings">Settings</span>
           </div>
-          <div class="m-body">
-            <div class="m-card">
-              <div class="m-card-row">
-                <span class="m-card-name">Upper Body Strength</span>
-                <span class="m-dur">30 min</span>
+          <div class="m-body" id="mockupBody">
+            <div class="m-tab-content" id="mockupContent">
+              <!-- Upcoming tab (default) -->
+              <div class="m-card">
+                <div class="m-card-row">
+                  <span class="m-card-name">Upper Body Strength</span>
+                  <span class="m-dur">30 min</span>
+                </div>
+                <div class="m-card-time">Today, 5:30 PM <b>&middot; in 42m</b></div>
+                <div class="m-timer">41:28</div>
+                <div class="m-actions">
+                  <span class="m-btn m-btn-g">Complete</span>
+                  <span class="m-btn m-btn-b">Reschedule</span>
+                  <span class="m-btn m-btn-s">Skip</span>
+                </div>
               </div>
-              <div class="m-card-time">Today, 5:30 PM <b>&middot; in 42m</b></div>
-              <div class="m-timer">41:28</div>
-              <div class="m-actions">
-                <span class="m-btn m-btn-g">Complete</span>
-                <span class="m-btn m-btn-b">Reschedule</span>
-                <span class="m-btn m-btn-s">Skip</span>
+              <div class="m-card2">
+                <div class="m-card-row">
+                  <span class="m-card-name">HIIT Session</span>
+                  <span class="m-dur">25 min</span>
+                </div>
+                <div class="m-card-time">Tomorrow, 7:00 AM</div>
               </div>
-            </div>
-            <div class="m-card2">
-              <div class="m-card-row">
-                <span class="m-card-name">HIIT Session</span>
-                <span class="m-dur">25 min</span>
-              </div>
-              <div class="m-card-time">Tomorrow, 7:00 AM</div>
             </div>
           </div>
         </div>
@@ -1062,6 +1605,10 @@
 
   <!-- HOW IT WORKS -->
   <section class="how" id="how">
+    <!-- #8 Noise overlay -->
+    <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+    </svg>
     <div class="how-inner">
       <div class="section-header section-header-center reveal">
         <div class="section-eyebrow">How It Works</div>
@@ -1088,23 +1635,77 @@
     </div>
   </section>
 
+  <!-- #3 BEFORE/AFTER COMPARISON -->
+  <section class="comparison" id="comparison">
+    <div class="comparison-inner">
+      <div class="section-header section-header-center reveal">
+        <div class="section-eyebrow">Why FitMyTime</div>
+        <h2 class="section-title">The difference is clear</h2>
+        <p class="section-desc">Stop planning, start training. See how FitMyTime transforms your fitness routine.</p>
+      </div>
+      <div class="comparison-grid reveal">
+        <div class="comparison-col comparison-col-without">
+          <h3>Without FitMyTime</h3>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-x">&#10005;</span>
+            <p>Chaotic schedule with no time for fitness</p>
+          </div>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-x">&#10005;</span>
+            <p>Skipped workouts and broken commitments</p>
+          </div>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-x">&#10005;</span>
+            <p>No tracking, no progress visibility</p>
+          </div>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-x">&#10005;</span>
+            <p>Decision fatigue picking what to do</p>
+          </div>
+        </div>
+        <div class="comparison-divider">
+          <div class="comparison-vs">VS</div>
+        </div>
+        <div class="comparison-col comparison-col-with">
+          <h3>With FitMyTime</h3>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-check">&#10003;</span>
+            <p>Auto-scheduled workouts in free calendar slots</p>
+          </div>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-check">&#10003;</span>
+            <p>Streak tracking keeps you accountable</p>
+          </div>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-check">&#10003;</span>
+            <p>Personalized exercises that match your goals</p>
+          </div>
+          <div class="comparison-item">
+            <span class="comparison-icon comparison-icon-check">&#10003;</span>
+            <p>Zero effort — just show up and work out</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- STATS -->
-  <section class="stats">
+  <section class="stats" id="stats-section">
     <div class="stats-inner">
       <div class="stat-item reveal reveal-d1">
-        <h3 data-count="30">0</h3>
+        <h3 data-count="30" data-suffix="s">0</h3>
         <p>Second setup</p>
       </div>
       <div class="stat-item reveal reveal-d2">
-        <h3 data-count="7">0</h3>
+        <h3 data-count="7" data-suffix="">0</h3>
         <p>Workout types</p>
       </div>
       <div class="stat-item reveal reveal-d3">
-        <h3 data-count="30">0</h3>
+        <h3 data-count="30" data-suffix="+">0</h3>
         <p>Built-in exercises</p>
       </div>
       <div class="stat-item reveal reveal-d4">
-        <h3 data-count="100">0</h3>
+        <h3 data-count="100" data-suffix="%">0</h3>
         <p>Percent free &amp; private</p>
       </div>
     </div>
@@ -1158,8 +1759,77 @@
     </div>
   </section>
 
+  <!-- #2 FAQ ACCORDION -->
+  <section class="faq" id="faq">
+    <!-- #8 Noise overlay (not on FAQ since it's cream with dots already) -->
+    <div class="faq-inner">
+      <div class="section-header section-header-center reveal">
+        <div class="section-eyebrow">FAQ</div>
+        <h2 class="section-title">Frequently asked questions</h2>
+      </div>
+      <div class="faq-item reveal reveal-d1">
+        <button class="faq-question" aria-expanded="false">
+          <span>Is FitMyTime really free?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p class="faq-answer-text">Yes, completely free. No subscriptions, no premium tier. FitMyTime is and will remain 100% free to use.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal reveal-d2">
+        <button class="faq-question" aria-expanded="false">
+          <span>Does it read my calendar events?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p class="faq-answer-text">It reads event times to find free slots. It never reads event titles or details. Your calendar content stays completely private.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal reveal-d3">
+        <button class="faq-question" aria-expanded="false">
+          <span>What browsers are supported?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p class="faq-answer-text">Chrome, Brave, Edge, and any Chromium-based browser. If it supports Chrome extensions, it supports FitMyTime.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal reveal-d4">
+        <button class="faq-question" aria-expanded="false">
+          <span>Do I need a Google account?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p class="faq-answer-text">Yes, for Google Calendar access. Your data stays on your device — nothing is sent to external servers.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal reveal-d5">
+        <button class="faq-question" aria-expanded="false">
+          <span>Can I customize the workouts?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p class="faq-answer-text">Yes — set your goal, equipment, preferred days/times, and add custom exercises. FitMyTime adapts to your preferences.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal reveal-d6">
+        <button class="faq-question" aria-expanded="false">
+          <span>How do I uninstall it?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p class="faq-answer-text">Right-click the extension icon and select "Remove from Chrome." All local data is deleted immediately. No traces left behind.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="cta" id="cta">
+    <!-- #8 Noise overlay -->
+    <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+    </svg>
     <div class="cta-inner reveal">
       <h2>Start working out<br>smarter today</h2>
       <p>Install FitMyTime in under 30 seconds. No account, no subscription, no catch. Just smarter workout scheduling.</p>
@@ -1188,14 +1858,21 @@
     </div>
   </footer>
 
+  <!-- #12 Back to top button -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
+
   <script>
-    // Nav scroll
+    // ===== Nav scroll =====
     const nav = document.getElementById('nav');
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 10);
     }, { passive: true });
 
-    // Scroll reveal
+    // ===== Scroll reveal =====
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1207,17 +1884,14 @@
 
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-    // Counter animation for stats
+    // ===== #13 Clean counter animation with data-suffix =====
     const counterObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const h3 = entry.target.querySelector('h3[data-count]');
           if (h3) {
             const target = parseInt(h3.dataset.count);
-            const suffix = h3.dataset.count === '30' && entry.target.querySelector('p').textContent.includes('Second') ? 's' :
-                           h3.dataset.count === '30' && entry.target.querySelector('p').textContent.includes('exercises') ? '+' :
-                           h3.dataset.count === '100' ? '%' : '';
-            let start = 0;
+            const suffix = h3.dataset.suffix || '';
             const duration = 1200;
             const startTime = performance.now();
             const animate = (now) => {
@@ -1235,6 +1909,199 @@
     }, { threshold: 0.5 });
 
     document.querySelectorAll('.stat-item').forEach(el => counterObserver.observe(el));
+
+    // ===== #4 Mobile hamburger menu =====
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      mobileMenu.classList.toggle('open');
+    });
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        mobileMenu.classList.remove('open');
+      });
+    });
+
+    // ===== #1 Interactive mockup tabs + #11 Auto-rotation =====
+    const mockupTabs = document.querySelectorAll('#mockupTabs .m-tab');
+    const mockupContent = document.getElementById('mockupContent');
+    let autoRotateInterval = null;
+    let autoRotateActive = true;
+    let currentTabIndex = 0;
+    const tabNames = ['upcoming', 'history', 'calendar', 'settings'];
+
+    const tabContents = {
+      upcoming: `
+        <div class="m-card">
+          <div class="m-card-row">
+            <span class="m-card-name">Upper Body Strength</span>
+            <span class="m-dur">30 min</span>
+          </div>
+          <div class="m-card-time">Today, 5:30 PM <b>&middot; in 42m</b></div>
+          <div class="m-timer">41:28</div>
+          <div class="m-actions">
+            <span class="m-btn m-btn-g">Complete</span>
+            <span class="m-btn m-btn-b">Reschedule</span>
+            <span class="m-btn m-btn-s">Skip</span>
+          </div>
+        </div>
+        <div class="m-card2">
+          <div class="m-card-row">
+            <span class="m-card-name">HIIT Session</span>
+            <span class="m-dur">25 min</span>
+          </div>
+          <div class="m-card-time">Tomorrow, 7:00 AM</div>
+        </div>`,
+      history: `
+        <div class="m-history-summary">
+          <div><div class="m-history-stat-val">12</div><div class="m-history-stat-label">Workouts</div></div>
+          <div><div class="m-history-stat-val">5.2h</div><div class="m-history-stat-label">Total Time</div></div>
+          <div><div class="m-history-stat-val">4.3</div><div class="m-history-stat-label">Avg Rating</div></div>
+        </div>
+        <div class="m-history-item">
+          <div><div class="m-history-name">Lower Body Power</div><div class="m-history-date">Today, 8:00 AM</div></div>
+          <div class="m-history-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        </div>
+        <div class="m-history-item">
+          <div><div class="m-history-name">Core & Flexibility</div><div class="m-history-date">Yesterday, 6:30 PM</div></div>
+          <div class="m-history-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+        </div>
+        <div class="m-history-item">
+          <div><div class="m-history-name">Full Body HIIT</div><div class="m-history-date">Mar 9, 7:00 AM</div></div>
+          <div class="m-history-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        </div>
+        <div class="m-history-item">
+          <div><div class="m-history-name">Upper Body Strength</div><div class="m-history-date">Mar 8, 5:30 PM</div></div>
+          <div class="m-history-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</div>
+        </div>`,
+      calendar: `
+        <div class="m-cal-month">March 2026</div>
+        <div class="m-cal-grid">
+          <span class="m-cal-day-label">S</span><span class="m-cal-day-label">M</span><span class="m-cal-day-label">T</span><span class="m-cal-day-label">W</span><span class="m-cal-day-label">T</span><span class="m-cal-day-label">F</span><span class="m-cal-day-label">S</span>
+          <span class="m-cal-day">1</span><span class="m-cal-day workout">2</span><span class="m-cal-day">3</span><span class="m-cal-day workout">4</span><span class="m-cal-day">5</span><span class="m-cal-day workout">6</span><span class="m-cal-day">7</span>
+          <span class="m-cal-day">8</span><span class="m-cal-day workout">9</span><span class="m-cal-day">10</span><span class="m-cal-day today">11</span><span class="m-cal-day">12</span><span class="m-cal-day workout">13</span><span class="m-cal-day">14</span>
+          <span class="m-cal-day">15</span><span class="m-cal-day">16</span><span class="m-cal-day">17</span><span class="m-cal-day">18</span><span class="m-cal-day">19</span><span class="m-cal-day">20</span><span class="m-cal-day">21</span>
+          <span class="m-cal-day">22</span><span class="m-cal-day">23</span><span class="m-cal-day">24</span><span class="m-cal-day">25</span><span class="m-cal-day">26</span><span class="m-cal-day">27</span><span class="m-cal-day">28</span>
+          <span class="m-cal-day">29</span><span class="m-cal-day">30</span><span class="m-cal-day">31</span><span class="m-cal-day empty">.</span><span class="m-cal-day empty">.</span><span class="m-cal-day empty">.</span><span class="m-cal-day empty">.</span>
+        </div>`,
+      settings: `
+        <div class="m-settings-group">
+          <div class="m-settings-label">Fitness Goal</div>
+          <div class="m-settings-value">Build Muscle</div>
+        </div>
+        <div class="m-settings-group">
+          <div class="m-settings-label">Workout Days</div>
+          <div class="m-settings-value">Mon, Wed, Fri, Sat</div>
+        </div>
+        <div class="m-settings-group">
+          <div class="m-settings-label">Equipment</div>
+          <div class="m-settings-value">Dumbbells, Pull-up bar, Resistance bands</div>
+        </div>
+        <div class="m-settings-toggle">
+          <span class="m-settings-toggle-label">Smart scheduling</span>
+          <span class="m-settings-toggle-switch"></span>
+        </div>
+        <div class="m-settings-toggle">
+          <span class="m-settings-toggle-label">Notifications</span>
+          <span class="m-settings-toggle-switch"></span>
+        </div>
+        <div class="m-settings-toggle" style="border-bottom:none">
+          <span class="m-settings-toggle-label">Progressive overload</span>
+          <span class="m-settings-toggle-switch"></span>
+        </div>`
+    };
+
+    function switchTab(tabName) {
+      const idx = tabNames.indexOf(tabName);
+      if (idx < 0) return;
+
+      // Update tab styles
+      mockupTabs.forEach(t => t.classList.remove('active'));
+      mockupTabs[idx].classList.add('active');
+
+      // Crossfade content — clear both classes first
+      mockupContent.classList.remove('fade-in');
+      mockupContent.classList.add('fade-out');
+      setTimeout(() => {
+        mockupContent.innerHTML = tabContents[tabName];
+        mockupContent.classList.remove('fade-out');
+        requestAnimationFrame(() => {
+          mockupContent.classList.add('fade-in');
+        });
+      }, 200);
+
+      currentTabIndex = idx;
+    }
+
+    // Tab click handlers
+    mockupTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        autoRotateActive = false;
+        clearInterval(autoRotateInterval);
+        switchTab(tab.dataset.tab);
+      });
+    });
+
+    // #11 Auto-rotation
+    function startAutoRotate() {
+      autoRotateInterval = setInterval(() => {
+        if (!autoRotateActive) return;
+        const nextIdx = (currentTabIndex + 1) % 4;
+        switchTab(tabNames[nextIdx]);
+      }, 4000);
+    }
+
+    const mockupEl = document.getElementById('mockup');
+    mockupEl.addEventListener('mouseenter', () => {
+      if (autoRotateActive) clearInterval(autoRotateInterval);
+    });
+    mockupEl.addEventListener('mouseleave', () => {
+      if (autoRotateActive) startAutoRotate();
+    });
+
+    startAutoRotate();
+
+    // ===== #2 FAQ accordion =====
+    document.querySelectorAll('.faq-question').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        const isOpen = item.classList.contains('open');
+        // Close all others
+        document.querySelectorAll('.faq-item.open').forEach(i => {
+          if (i !== item) i.classList.remove('open');
+        });
+        item.classList.toggle('open', !isOpen);
+        btn.setAttribute('aria-expanded', !isOpen);
+      });
+    });
+
+    // ===== #12 Back to top button =====
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      backToTop.classList.toggle('visible', window.scrollY > 500);
+    }, { passive: true });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ===== #15 CTA button ripple effect =====
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+      btn.addEventListener('mousedown', function(e) {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const size = Math.max(rect.width, rect.height) * 2;
+        const ripple = document.createElement('span');
+        ripple.className = 'btn-ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (x - size / 2) + 'px';
+        ripple.style.top = (y - size / 2) + 'px';
+        btn.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+      });
+    });
   </script>
 
 </body>
