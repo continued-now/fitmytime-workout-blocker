@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitMyTime — Smart Workout Scheduling for Busy People</title>
+  <meta name="description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #FAF9F6;
+      --white: #FFFFFF;
+      --blue: #2563EB;
+      --blue-hover: #1D4ED8;
+      --blue-light: #EFF6FF;
+      --blue-mist: #DBEAFE;
+      --coral: #F97316;
+      --coral-light: #FFF7ED;
+      --dark: #0C1220;
+      --dark-card: #161D30;
+      --text: #1A1F36;
+      --text-mid: #3D4663;
+      --text-soft: #6B7280;
+      --text-faint: #9CA3AF;
+      --border: #E5E7EB;
+      --border-light: #F0F0EE;
+      --green: #10B981;
+      --green-light: #ECFDF5;
+      --amber: #F59E0B;
+      --amber-light: #FFFBEB;
+      --font-display: 'Bricolage Grotesque', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-serif: 'Source Serif 4', Georgia, serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    ::selection { background: var(--blue-mist); color: var(--blue); }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text);
+      background: var(--cream);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(250,249,246,0.85);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    nav.scrolled {
+      border-bottom-color: var(--border);
+      box-shadow: 0 1px 12px rgba(0,0,0,0.04);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-icon {
+      width: 36px; height: 36px;
+      background: var(--blue);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-body);
+      color: var(--text-soft);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--blue) !important;
+      color: var(--white) !important;
+      padding: 10px 22px !important;
+      border-radius: 10px;
+      font-weight: 600 !important;
+      transition: background 0.25s, transform 0.25s, box-shadow 0.25s !important;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.2);
+    }
+    .nav-cta:hover {
+      background: var(--blue-hover) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.28) !important;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      padding: 160px 32px 120px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(0,0,0,0.03) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-text { max-width: 540px; }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: 24px;
+      margin-bottom: 28px;
+    }
+    .hero-pill-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+    .hero-pill strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 4.5vw, 62px);
+      font-weight: 800;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 24px;
+      letter-spacing: -0.03em;
+    }
+    .hero-highlight {
+      position: relative;
+      display: inline;
+    }
+    .hero-highlight::after {
+      content: '';
+      position: absolute;
+      left: -4px; right: -4px;
+      bottom: 4px;
+      height: 12px;
+      background: var(--blue-mist);
+      border-radius: 4px;
+      z-index: -1;
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--text-soft);
+      line-height: 1.75;
+      margin-bottom: 36px;
+      max-width: 460px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 28px;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.25);
+    }
+    .btn-primary:hover {
+      background: var(--blue-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-mid);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover {
+      border-color: var(--text-soft);
+      background: var(--white);
+    }
+    .hero-trust {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+    .hero-trust span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .trust-check {
+      width: 16px; height: 16px;
+      background: var(--green-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* Mockup & annotations */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+    .mockup {
+      width: 370px;
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow:
+        0 24px 80px rgba(12,18,32,0.12),
+        0 0 0 1px rgba(0,0,0,0.04);
+      overflow: hidden;
+      transform: rotate(-1.5deg);
+      transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+      animation: mockupFloat 6s ease-in-out infinite;
+    }
+    .mockup:hover {
+      transform: rotate(0deg) scale(1.02);
+      animation-play-state: paused;
+    }
+    @keyframes mockupFloat {
+      0%, 100% { transform: rotate(-1.5deg) translateY(0); }
+      50% { transform: rotate(-1.5deg) translateY(-8px); }
+    }
+    .m-header {
+      background: var(--blue);
+      color: white;
+      padding: 18px 20px 14px;
+      text-align: center;
+    }
+    .m-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+    .m-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    .m-streak-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 10px;
+    }
+    .m-progress {
+      margin-top: 8px;
+      font-size: 10px;
+      opacity: 0.85;
+    }
+    .m-bar-track {
+      height: 3px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+    .m-bar-fill {
+      height: 100%;
+      width: 75%;
+      background: white;
+      border-radius: 2px;
+    }
+    .m-tabs {
+      display: flex;
+      background: #f8f9fb;
+      border-bottom: 1px solid var(--border);
+    }
+    .m-tab {
+      flex: 1;
+      padding: 9px 0;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-faint);
+      text-align: center;
+      border-bottom: 2px solid transparent;
+    }
+    .m-tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+      background: white;
+    }
+    .m-body { padding: 14px; }
+    .m-card {
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border-left: 3px solid var(--blue);
+    }
+    .m-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .m-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-mid);
+    }
+    .m-dur {
+      background: var(--blue);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 8px;
+    }
+    .m-card-time {
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+    .m-card-time b {
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .m-timer {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--blue);
+      text-align: center;
+      padding: 4px 0;
+      letter-spacing: 0.06em;
+    }
+    .m-actions {
+      display: flex;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .m-btn {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      text-align: center;
+      border: none;
+    }
+    .m-btn-g { background: var(--green); color: white; }
+    .m-btn-b { background: var(--blue-light); color: var(--blue); }
+    .m-btn-s { background: #e9ecef; color: var(--text-soft); }
+    .m-card2 {
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    /* Annotation labels */
+    .annotation {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: annotationIn 0.6s ease forwards;
+    }
+    .annotation-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
+      flex-shrink: 0;
+    }
+    .annotation-label {
+      background: var(--white);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-mid);
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .ann-1 { top: 50px; right: -30px; animation-delay: 0.8s; }
+    .ann-2 { top: 230px; left: -40px; flex-direction: row-reverse; animation-delay: 1.1s; }
+    .ann-3 { bottom: 80px; right: -20px; animation-delay: 1.4s; }
+    @keyframes annotationIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== FEATURES — BENTO ===== */
+    .features {
+      padding: 120px 32px;
+      background: var(--white);
+      position: relative;
+    }
+    .features-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-eyebrow {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--coral);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3.2vw, 42px);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-soft);
+      line-height: 1.7;
+      max-width: 520px;
+    }
+    .section-header {
+      margin-bottom: 56px;
+    }
+    .section-header-center {
+      text-align: center;
+    }
+    .section-header-center .section-desc {
+      margin: 0 auto;
+    }
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .bento-card {
+      background: var(--cream);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 32px;
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s;
+      position: relative;
+      overflow: hidden;
+    }
+    .bento-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+    }
+    .bento-card.wide { grid-column: span 2; }
+    .bento-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .icon-blue { background: var(--blue-light); }
+    .icon-coral { background: var(--coral-light); }
+    .icon-green { background: var(--green-light); }
+    .icon-amber { background: var(--amber-light); }
+    .bento-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .bento-card p {
+      font-size: 14px;
+      color: var(--text-soft);
+      line-height: 1.65;
+      max-width: 380px;
+    }
+    /* Mini illustrations inside wide cards */
+    .bento-visual {
+      position: absolute;
+      right: 28px;
+      bottom: 28px;
+      opacity: 0.12;
+      font-size: 80px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    .how {
+      padding: 120px 32px;
+      background: var(--cream);
+      position: relative;
+    }
+    .how::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .how-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 48px;
+      position: relative;
+    }
+    /* Connecting line between steps */
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: 80px;
+      right: 80px;
+      height: 2px;
+      background: var(--border);
+    }
+    .step-item {
+      text-align: center;
+      position: relative;
+    }
+    .step-num {
+      width: 72px; height: 72px;
+      background: var(--white);
+      border: 2px solid var(--blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--blue);
+      position: relative;
+      z-index: 1;
+    }
+    .step-item h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .step-item p {
+      font-size: 15px;
+      color: var(--text-soft);
+      line-height: 1.65;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    /* ===== STATS ===== */
+    .stats {
+      padding: 80px 32px;
+      background: var(--dark);
+      position: relative;
+      overflow: hidden;
+    }
+    .stats::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 48px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .stat-item h3 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-item p {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* ===== TESTIMONIALS ===== */
+    .testimonials {
+      padding: 120px 32px;
+      background: var(--white);
+    }
+    .testimonials-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .t-card {
+      background: var(--cream);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 32px;
+      position: relative;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .t-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+    }
+    .t-quote-mark {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 64px;
+      line-height: 1;
+      color: var(--blue);
+      opacity: 0.15;
+      position: absolute;
+      top: 20px;
+      left: 28px;
+    }
+    .t-stars {
+      color: var(--amber);
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .t-text {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 16px;
+      color: var(--text-mid);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    .t-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .t-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .t-avatar-blue { background: var(--blue-light); color: var(--blue); }
+    .t-avatar-coral { background: var(--coral-light); color: var(--coral); }
+    .t-avatar-green { background: var(--green-light); color: var(--green); }
+    .t-name {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .t-role {
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+
+    /* ===== CTA ===== */
+    .cta {
+      padding: 120px 32px;
+      background: var(--cream);
+      text-align: center;
+      position: relative;
+    }
+    .cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .cta-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 3.5vw, 44px);
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+    }
+    .cta p {
+      font-size: 17px;
+      color: var(--text-soft);
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+    .cta-note {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--dark);
+      padding: 52px 32px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .footer-icon {
+      width: 30px; height: 30px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .footer-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.25s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.8); }
+    .footer-copy {
+      font-size: 13px;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ===== REVEAL ANIMATION ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1), transform 0.7s cubic-bezier(0.4,0,0.2,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-d1 { transition-delay: 0.08s; }
+    .reveal-d2 { transition-delay: 0.16s; }
+    .reveal-d3 { transition-delay: 0.24s; }
+    .reveal-d4 { transition-delay: 0.32s; }
+    .reveal-d5 { transition-delay: 0.40s; }
+    .reveal-d6 { transition-delay: 0.48s; }
+    .reveal-d7 { transition-delay: 0.56s; }
+
+    /* Hero elements animate on load */
+    .hero-anim {
+      opacity: 0;
+      transform: translateY(28px);
+      animation: heroIn 0.7s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    .hero-anim-d1 { animation-delay: 0.1s; }
+    .hero-anim-d2 { animation-delay: 0.2s; }
+    .hero-anim-d3 { animation-delay: 0.3s; }
+    .hero-anim-d4 { animation-delay: 0.4s; }
+    .hero-anim-d5 { animation-delay: 0.55s; }
+    @keyframes heroIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 960px) {
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-text { max-width: 100%; margin: 0 auto; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .hero-trust { justify-content: center; }
+      .hero-visual { margin-top: 48px; }
+      .annotation { display: none; }
+      .bento { grid-template-columns: 1fr 1fr; }
+      .bento-card.wide { grid-column: span 2; }
+      .steps-row { grid-template-columns: 1fr; gap: 40px; }
+      .steps-row::before { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr 1fr; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .hero { padding: 120px 20px 80px; }
+      .features, .how, .testimonials, .cta { padding: 80px 20px; }
+      .stats { padding: 56px 20px; }
+      .bento { grid-template-columns: 1fr; }
+      .bento-card.wide { grid-column: span 1; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .stats-inner { grid-template-columns: 1fr; }
+      .nav-links .nav-text { display: none; }
+      .nav-inner { padding: 0 20px; }
+      .mockup { width: 310px; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; flex-wrap: wrap; }
+      .hero-trust { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <div class="nav-icon">F</div>
+        FitMyTime
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-text">Features</a></li>
+        <li><a href="#how" class="nav-text">How It Works</a></li>
+        <li><a href="#reviews" class="nav-text">Reviews</a></li>
+        <li><a href="#cta" class="nav-cta">Add to Chrome</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-pill hero-anim">
+          <span class="hero-pill-dot"></span>
+          <strong>Free</strong>&nbsp;Chrome Extension
+        </div>
+        <h1 class="hero-anim hero-anim-d1">
+          Never Skip a<br><span class="hero-highlight">Workout</span> Again
+        </h1>
+        <p class="hero-anim hero-anim-d2">
+          FitMyTime scans your Google Calendar, finds free slots, and schedules personalized workouts that match your goals, equipment, and schedule.
+        </p>
+        <div class="hero-actions hero-anim hero-anim-d3">
+          <a href="#cta" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+            Add to Chrome &mdash; Free
+          </a>
+          <a href="#how" class="btn btn-ghost">See How It Works</a>
+        </div>
+        <div class="hero-trust hero-anim hero-anim-d4">
+          <span><span class="trust-check">&#10003;</span> No account needed</span>
+          <span><span class="trust-check">&#10003;</span> Google Calendar</span>
+          <span><span class="trust-check">&#10003;</span> 100% private</span>
+        </div>
+      </div>
+      <div class="hero-visual hero-anim hero-anim-d5">
+        <div class="annotation ann-1">
+          <span class="annotation-dot"></span>
+          <span class="annotation-label">Streak tracking</span>
+        </div>
+        <div class="annotation ann-2">
+          <span class="annotation-dot"></span>
+          <span class="annotation-label">Live countdown</span>
+        </div>
+        <div class="annotation ann-3">
+          <span class="annotation-dot"></span>
+          <span class="annotation-label">Smart scheduling</span>
+        </div>
+        <div class="mockup">
+          <div class="m-header">
+            <div class="m-title">FitMyTime</div>
+            <div class="m-meta">
+              Smart workout scheduling
+              <span class="m-streak-badge">7 day streak</span>
+            </div>
+            <div class="m-progress">
+              3 of 4 this week
+              <div class="m-bar-track"><div class="m-bar-fill"></div></div>
+            </div>
+          </div>
+          <div class="m-tabs">
+            <span class="m-tab active">Upcoming</span>
+            <span class="m-tab">History</span>
+            <span class="m-tab">Calendar</span>
+            <span class="m-tab">Settings</span>
+          </div>
+          <div class="m-body">
+            <div class="m-card">
+              <div class="m-card-row">
+                <span class="m-card-name">Upper Body Strength</span>
+                <span class="m-dur">30 min</span>
+              </div>
+              <div class="m-card-time">Today, 5:30 PM <b>&middot; in 42m</b></div>
+              <div class="m-timer">41:28</div>
+              <div class="m-actions">
+                <span class="m-btn m-btn-g">Complete</span>
+                <span class="m-btn m-btn-b">Reschedule</span>
+                <span class="m-btn m-btn-s">Skip</span>
+              </div>
+            </div>
+            <div class="m-card2">
+              <div class="m-card-row">
+                <span class="m-card-name">HIIT Session</span>
+                <span class="m-dur">25 min</span>
+              </div>
+              <div class="m-card-time">Tomorrow, 7:00 AM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="features-inner">
+      <div class="section-header reveal">
+        <div class="section-eyebrow">Features</div>
+        <h2 class="section-title">Everything you need<br>to stay consistent</h2>
+        <p class="section-desc">Built for busy people who want to stay fit without spending time planning every workout.</p>
+      </div>
+      <div class="bento">
+        <div class="bento-card wide reveal reveal-d1">
+          <div class="bento-icon icon-blue">&#128197;</div>
+          <h3>Smart Calendar Scheduling</h3>
+          <p>Automatically scans your Google Calendar for free time slots and creates personalized workout events during your preferred windows. Deduplicates to prevent double-booking.</p>
+          <div class="bento-visual">&#128197;</div>
+        </div>
+        <div class="bento-card reveal reveal-d2">
+          <div class="bento-icon icon-coral">&#9201;</div>
+          <h3>Live Countdown</h3>
+          <p>Real-time timer to your next workout. Pulses when it's go time and auto-expands exercises.</p>
+        </div>
+        <div class="bento-card reveal reveal-d3">
+          <div class="bento-icon icon-amber">&#128293;</div>
+          <h3>Streak Tracking</h3>
+          <p>Build daily streaks with milestones at 3, 7, 14, and 30 days. Track your all-time best.</p>
+        </div>
+        <div class="bento-card reveal reveal-d4">
+          <div class="bento-icon icon-blue">&#127942;</div>
+          <h3>Achievement Badges</h3>
+          <p>Unlock badges for your first workout, 50 completions, 100 minutes, and streak milestones.</p>
+        </div>
+        <div class="bento-card wide reveal reveal-d5">
+          <div class="bento-icon icon-green">&#128170;</div>
+          <h3>Personal Records & Progressive Overload</h3>
+          <p>Automatically tracks your best sets, reps, and weight per exercise. When you've been consistent at the same weight, get smart suggestions to level up.</p>
+          <div class="bento-visual">&#128170;</div>
+        </div>
+        <div class="bento-card reveal reveal-d6">
+          <div class="bento-icon icon-coral">&#128338;</div>
+          <h3>Flexible Rescheduling</h3>
+          <p>Can't make it? Reschedule to a new slot or skip. Life happens — FitMyTime adapts.</p>
+        </div>
+        <div class="bento-card reveal reveal-d7">
+          <div class="bento-icon icon-green">&#128467;&#65039;</div>
+          <h3>Rate & Reflect</h3>
+          <p>Rate intensity 1–5 and add notes after each session. Influences future workout suggestions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="how-inner">
+      <div class="section-header section-header-center reveal">
+        <div class="section-eyebrow">How It Works</div>
+        <h2 class="section-title">Three steps to a fitter you</h2>
+        <p class="section-desc">Set it up once, then let FitMyTime handle the rest. No extra apps, no subscriptions, no accounts.</p>
+      </div>
+      <div class="steps-row">
+        <div class="step-item reveal reveal-d1">
+          <div class="step-num">1</div>
+          <h3>Connect Your Calendar</h3>
+          <p>Sign in with Google and grant calendar access. Your data stays on your device — always.</p>
+        </div>
+        <div class="step-item reveal reveal-d2">
+          <div class="step-num">2</div>
+          <h3>Set Your Preferences</h3>
+          <p>Choose your fitness goal, equipment, preferred days and time windows, and weekly target.</p>
+        </div>
+        <div class="step-item reveal reveal-d3">
+          <div class="step-num">3</div>
+          <h3>Crush Your Workouts</h3>
+          <p>Personalized workouts appear in your calendar. Complete them, track progress, earn badges.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats">
+    <div class="stats-inner">
+      <div class="stat-item reveal reveal-d1">
+        <h3 data-count="30">0</h3>
+        <p>Second setup</p>
+      </div>
+      <div class="stat-item reveal reveal-d2">
+        <h3 data-count="7">0</h3>
+        <p>Workout types</p>
+      </div>
+      <div class="stat-item reveal reveal-d3">
+        <h3 data-count="30">0</h3>
+        <p>Built-in exercises</p>
+      </div>
+      <div class="stat-item reveal reveal-d4">
+        <h3 data-count="100">0</h3>
+        <p>Percent free &amp; private</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="reviews">
+    <div class="testimonials-inner">
+      <div class="section-header section-header-center reveal">
+        <div class="section-eyebrow">Reviews</div>
+        <h2 class="section-title">Loved by busy people<br>who stay fit</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="t-card reveal reveal-d1">
+          <span class="t-quote-mark">&ldquo;</span>
+          <span class="t-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <p class="t-text">I used to spend 20 minutes figuring out when to work out. Now it just appears in my calendar. The streak counter is genuinely motivating.</p>
+          <div class="t-author">
+            <div class="t-avatar t-avatar-blue">S</div>
+            <div>
+              <div class="t-name">Sarah K.</div>
+              <div class="t-role">Product Manager</div>
+            </div>
+          </div>
+        </div>
+        <div class="t-card reveal reveal-d2">
+          <span class="t-quote-mark">&ldquo;</span>
+          <span class="t-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <p class="t-text">The reschedule feature is a game changer. My meetings shift constantly and FitMyTime rolls with it. Haven't missed a workout in 3 weeks.</p>
+          <div class="t-author">
+            <div class="t-avatar t-avatar-coral">M</div>
+            <div>
+              <div class="t-name">Marcus T.</div>
+              <div class="t-role">Software Engineer</div>
+            </div>
+          </div>
+        </div>
+        <div class="t-card reveal reveal-d3">
+          <span class="t-quote-mark">&ldquo;</span>
+          <span class="t-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <p class="t-text">Finally an extension that doesn't try to be a full app. It lives in my browser, respects my calendar, and the workouts are actually good.</p>
+          <div class="t-author">
+            <div class="t-avatar t-avatar-green">J</div>
+            <div>
+              <div class="t-name">Jamie L.</div>
+              <div class="t-role">Freelance Designer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" id="cta">
+    <div class="cta-inner reveal">
+      <h2>Start working out<br>smarter today</h2>
+      <p>Install FitMyTime in under 30 seconds. No account, no subscription, no catch. Just smarter workout scheduling.</p>
+      <a href="#" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+        Add to Chrome &mdash; It's Free
+      </a>
+      <p class="cta-note">Works on Chrome, Brave, and Edge. Requires Google Calendar.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-icon">F</div>
+        FitMyTime
+      </div>
+      <ul class="footer-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">GitHub</a></li>
+      </ul>
+      <span class="footer-copy">&copy; 2026 FitMyTime. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Nav scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Counter animation for stats
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const h3 = entry.target.querySelector('h3[data-count]');
+          if (h3) {
+            const target = parseInt(h3.dataset.count);
+            const suffix = h3.dataset.count === '30' && entry.target.querySelector('p').textContent.includes('Second') ? 's' :
+                           h3.dataset.count === '30' && entry.target.querySelector('p').textContent.includes('exercises') ? '+' :
+                           h3.dataset.count === '100' ? '%' : '';
+            let start = 0;
+            const duration = 1200;
+            const startTime = performance.now();
+            const animate = (now) => {
+              const elapsed = now - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              h3.textContent = Math.floor(eased * target) + suffix;
+              if (progress < 1) requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+          }
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.stat-item').forEach(el => counterObserver.observe(el));
+  </script>
+
+</body>
+</html>

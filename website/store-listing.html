@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitMyTime — Chrome Web Store Listing Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #FAF9F6;
+      --white: #FFFFFF;
+      --blue: #2563EB;
+      --blue-hover: #1D4ED8;
+      --blue-light: #EFF6FF;
+      --blue-mist: #DBEAFE;
+      --coral: #F97316;
+      --coral-light: #FFF7ED;
+      --dark: #0C1220;
+      --dark-card: #161D30;
+      --text: #1A1F36;
+      --text-mid: #3D4663;
+      --text-soft: #6B7280;
+      --text-faint: #9CA3AF;
+      --border: #E5E7EB;
+      --border-light: #F0F0EE;
+      --green: #10B981;
+      --green-light: #ECFDF5;
+      --amber: #F59E0B;
+      --amber-light: #FFFBEB;
+      --font-display: 'Bricolage Grotesque', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    ::selection { background: var(--blue-mist); color: var(--blue); }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text);
+      background: var(--cream);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Page Banner */
+    .page-banner {
+      background: var(--dark);
+      padding: 48px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .page-banner h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .page-banner p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.45);
+      position: relative;
+      z-index: 1;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 32px 100px;
+    }
+
+    /* ===== STORE HEADER ===== */
+    .store-header {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+    }
+    .store-icon {
+      width: 100px; height: 100px;
+      min-width: 100px;
+      background: var(--blue);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 800;
+    }
+    .store-meta { flex: 1; }
+    .store-meta h2 {
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .store-tagline {
+      font-size: 16px;
+      color: var(--text-soft);
+      margin-bottom: 18px;
+    }
+    .store-pills {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .store-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+    .store-pill strong {
+      color: var(--text-mid);
+      font-weight: 600;
+    }
+    .store-stars {
+      color: var(--amber);
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+    .store-add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue);
+      color: white;
+      padding: 12px 26px;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 18px;
+      transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.2);
+    }
+    .store-add-btn:hover {
+      background: var(--blue-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.28);
+    }
+
+    /* ===== SCREENSHOTS ===== */
+    .screenshots-card {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .screenshots-card h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .ss-scroll {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .ss-scroll::-webkit-scrollbar { height: 6px; }
+    .ss-scroll::-webkit-scrollbar-track { background: var(--cream); border-radius: 3px; }
+    .ss-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .ss-item {
+      min-width: 290px;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--white);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .ss-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    .ss-display {
+      height: 380px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Mini extension mockup elements */
+    .ss-hdr {
+      background: var(--blue);
+      color: white;
+      padding: 14px 16px 10px;
+      text-align: center;
+    }
+    .ss-hdr h4 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+    .ss-hdr-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 9px;
+      opacity: 0.85;
+    }
+    .ss-hdr-streak {
+      background: rgba(255,255,255,0.2);
+      padding: 1px 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 9px;
+    }
+    .ss-hdr-progress {
+      margin-top: 6px;
+      font-size: 9px;
+      opacity: 0.8;
+    }
+    .ss-hdr-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      margin-top: 3px;
+    }
+    .ss-hdr-bar-fill {
+      height: 100%;
+      width: 75%;
+      background: white;
+      border-radius: 2px;
+    }
+    .ss-nav {
+      display: flex;
+      background: #f8f9fb;
+      border-bottom: 1px solid var(--border);
+    }
+    .ss-nav-tab {
+      flex: 1;
+      padding: 7px 0;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-faint);
+      text-align: center;
+      border-bottom: 2px solid transparent;
+    }
+    .ss-nav-tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+      background: white;
+    }
+    .ss-content {
+      padding: 12px;
+      flex: 1;
+      background: white;
+      font-family: var(--font-body);
+    }
+    .ss-wcard {
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--blue);
+    }
+    .ss-wcard-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ss-wcard-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-mid);
+    }
+    .ss-wcard-dur {
+      background: var(--blue);
+      color: white;
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .ss-wcard-sub {
+      font-size: 9px;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+    .ss-wcard-sub b {
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .ss-wcard-timer {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--blue);
+      text-align: center;
+      padding: 4px 0;
+      letter-spacing: 0.05em;
+    }
+    .ss-btn-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .ss-btn {
+      flex: 1;
+      padding: 5px 0;
+      border-radius: 5px;
+      font-size: 9px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .ss-btn-g { background: var(--green); color: white; }
+    .ss-btn-b { background: var(--blue-light); color: var(--blue); }
+    .ss-btn-s { background: #e9ecef; color: var(--text-soft); }
+
+    /* Rating screenshot elements */
+    .ss-rating-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin: 8px 0;
+    }
+    .ss-star { font-size: 18px; }
+    .ss-star-dim { filter: grayscale(100%); opacity: 0.35; }
+    .ss-textarea {
+      width: 100%;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #f8f9fb;
+      font-size: 9px;
+      color: var(--text-faint);
+      padding: 6px 8px;
+      font-family: var(--font-body);
+    }
+
+    /* Stats grid inside screenshot */
+    .ss-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 4px;
+      margin-bottom: 8px;
+    }
+    .ss-stat-cell { text-align: center; }
+    .ss-stat-num {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+    .ss-stat-lbl {
+      font-size: 7px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Filter pills */
+    .ss-filters {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .ss-filter {
+      flex: 1;
+      padding: 4px 0;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid var(--border);
+      color: var(--text-faint);
+      background: white;
+    }
+    .ss-filter.active {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
+
+    /* Badge grid */
+    .ss-badges {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .ss-badge {
+      text-align: center;
+      padding: 7px 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8f9fb;
+      font-size: 8px;
+      color: var(--text-faint);
+    }
+    .ss-badge.on {
+      border-color: var(--blue-mist);
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+    .ss-badge-icon {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 1px;
+    }
+
+    /* History items */
+    .ss-hist-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 10px;
+    }
+
+    /* Calendar grid */
+    .ss-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-top: 6px;
+    }
+    .ss-cal-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--text-faint);
+      border-radius: 4px;
+    }
+    .ss-cal-cell.hdr {
+      font-weight: 600;
+      font-size: 8px;
+      color: var(--text-faint);
+    }
+    .ss-cal-cell.done {
+      background: var(--blue-light);
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .ss-cal-cell.skip {
+      background: #f3f4f6;
+      color: var(--text-faint);
+    }
+    .ss-cal-cell.today {
+      border: 2px solid var(--blue);
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .ss-cal-detail {
+      margin-top: 10px;
+      padding: 8px;
+      background: var(--blue-light);
+      border-radius: 6px;
+    }
+    .ss-cal-detail-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--blue);
+    }
+    .ss-cal-detail-sub {
+      font-size: 9px;
+      color: var(--text-soft);
+    }
+
+    /* Settings rows */
+    .ss-setting-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 11px;
+    }
+    .ss-setting-label {
+      font-weight: 500;
+      color: var(--text-mid);
+    }
+    .ss-setting-value {
+      color: var(--text-faint);
+    }
+    .ss-setting-value.connected {
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    /* Screenshot label */
+    .ss-label {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+    .ss-label h4 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .ss-label p {
+      font-size: 11px;
+      color: var(--text-faint);
+      line-height: 1.4;
+    }
+
+    /* ===== DESCRIPTION CARD ===== */
+    .desc-card {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 24px;
+    }
+    .desc-card h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .desc-body {
+      font-size: 15px;
+      color: var(--text-mid);
+      line-height: 1.8;
+    }
+    .desc-body p { margin-bottom: 16px; }
+    .desc-body h4 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 14px;
+    }
+    .desc-body ul {
+      list-style: none;
+      padding: 0;
+    }
+    .desc-body li {
+      padding: 7px 0 7px 28px;
+      position: relative;
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+    .desc-body li::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 14px;
+      width: 8px;
+      height: 8px;
+      background: var(--blue);
+      border-radius: 50%;
+    }
+    .desc-body li strong {
+      color: var(--text);
+    }
+
+    /* ===== PROMO TILES ===== */
+    .promo-card {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 24px;
+    }
+    .promo-card h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .promo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .promo-tile {
+      aspect-ratio: 16/10;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .promo-tile:hover { transform: scale(1.02); }
+    .promo-tile.tile-blue {
+      background: var(--blue);
+      color: white;
+    }
+    .promo-tile.tile-blue h4 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 6px;
+    }
+    .promo-tile.tile-blue p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+    .promo-tile.tile-cream {
+      background: var(--cream);
+      border: 1px solid var(--border-light);
+    }
+    .promo-tile.tile-cream h4 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .promo-tile.tile-cream p {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+    .promo-tile .promo-emoji {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== INFO TABLE ===== */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .info-table tr {
+      border-bottom: 1px solid var(--border-light);
+    }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td {
+      padding: 14px 0;
+      font-size: 14px;
+      vertical-align: top;
+    }
+    .info-table td:first-child {
+      font-weight: 600;
+      color: var(--text);
+      width: 160px;
+      font-family: var(--font-display);
+    }
+    .info-table td:last-child {
+      color: var(--text-soft);
+    }
+    .info-tag {
+      display: inline-block;
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 12px;
+      border-radius: 10px;
+      margin: 2px 4px 2px 0;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 700px) {
+      .store-header { flex-direction: column; align-items: center; text-align: center; }
+      .store-pills { justify-content: center; }
+      .promo-grid { grid-template-columns: 1fr; }
+      .ss-item { min-width: 260px; }
+      .container { padding: 24px 20px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-banner">
+    <h1>Chrome Web Store Listing</h1>
+    <p>Preview of how FitMyTime appears on the Chrome Web Store</p>
+  </div>
+
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="store-header">
+      <div class="store-icon">F</div>
+      <div class="store-meta">
+        <h2>FitMyTime</h2>
+        <p class="store-tagline">Smart workout scheduling that integrates with your Google Calendar</p>
+        <div class="store-pills">
+          <span class="store-pill"><span class="store-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>&nbsp; <strong>5.0</strong></span>
+          <span class="store-pill"><strong>100+</strong> users</span>
+          <span class="store-pill">Productivity</span>
+          <span class="store-pill">Free</span>
+        </div>
+        <button class="store-add-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add to Chrome
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREENSHOTS -->
+    <div class="screenshots-card">
+      <h3>Screenshots</h3>
+      <div class="ss-scroll">
+
+        <!-- 1: Upcoming + Timer -->
+        <div class="ss-item">
+          <div class="ss-display">
+            <div class="ss-hdr">
+              <h4>FitMyTime</h4>
+              <div class="ss-hdr-meta">
+                Smart workout scheduling
+                <span class="ss-hdr-streak">7 day streak</span>
+              </div>
+              <div class="ss-hdr-progress">
+                3 of 4 this week
+                <div class="ss-hdr-bar"><div class="ss-hdr-bar-fill"></div></div>
+              </div>
+            </div>
+            <div class="ss-nav">
+              <span class="ss-nav-tab active">Upcoming</span>
+              <span class="ss-nav-tab">History</span>
+              <span class="ss-nav-tab">Calendar</span>
+              <span class="ss-nav-tab">Settings</span>
+            </div>
+            <div class="ss-content">
+              <div class="ss-wcard">
+                <div class="ss-wcard-row">
+                  <span class="ss-wcard-name">Upper Body Strength</span>
+                  <span class="ss-wcard-dur">30 min</span>
+                </div>
+                <div class="ss-wcard-sub">Today, 5:30 PM <b>&middot; in 42m</b></div>
+                <div class="ss-wcard-timer">41:28</div>
+                <div class="ss-btn-row">
+                  <span class="ss-btn ss-btn-g">Complete</span>
+                  <span class="ss-btn ss-btn-b">Reschedule</span>
+                  <span class="ss-btn ss-btn-s">Skip</span>
+                </div>
+              </div>
+              <div class="ss-wcard" style="border-left-color: var(--border);">
+                <div class="ss-wcard-row">
+                  <span class="ss-wcard-name">HIIT Session</span>
+                  <span class="ss-wcard-dur">25 min</span>
+                </div>
+                <div class="ss-wcard-sub">Tomorrow, 7:00 AM</div>
+              </div>
+            </div>
+          </div>
+          <div class="ss-label">
+            <h4>Smart Scheduling</h4>
+            <p>Live countdown, reschedule, and weekly progress tracking</p>
+          </div>
+        </div>
+
+        <!-- 2: Rating -->
+        <div class="ss-item">
+          <div class="ss-display">
+            <div class="ss-hdr">
+              <h4>FitMyTime</h4>
+              <div class="ss-hdr-meta">Smart workout scheduling</div>
+            </div>
+            <div class="ss-nav">
+              <span class="ss-nav-tab active">Upcoming</span>
+              <span class="ss-nav-tab">History</span>
+              <span class="ss-nav-tab">Calendar</span>
+              <span class="ss-nav-tab">Settings</span>
+            </div>
+            <div class="ss-content">
+              <div class="ss-wcard">
+                <div class="ss-wcard-name">Upper Body Strength</div>
+                <div class="ss-wcard-sub" style="margin-bottom: 6px;">Rate your workout:</div>
+                <div class="ss-rating-row">
+                  <span class="ss-star">&#11088;</span>
+                  <span class="ss-star">&#11088;</span>
+                  <span class="ss-star">&#11088;</span>
+                  <span class="ss-star">&#11088;</span>
+                  <span class="ss-star ss-star-dim">&#11088;</span>
+                </div>
+                <div class="ss-textarea">Felt great! Increased push-up reps...</div>
+                <div class="ss-btn-row">
+                  <span class="ss-btn ss-btn-g">Done</span>
+                  <span class="ss-btn ss-btn-s">Cancel</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ss-label">
+            <h4>Rate & Reflect</h4>
+            <p>Rate intensity and add notes after each workout</p>
+          </div>
+        </div>
+
+        <!-- 3: History + Badges -->
+        <div class="ss-item">
+          <div class="ss-display">
+            <div class="ss-hdr">
+              <h4>FitMyTime</h4>
+              <div class="ss-hdr-meta">Smart workout scheduling</div>
+            </div>
+            <div class="ss-nav">
+              <span class="ss-nav-tab">Upcoming</span>
+              <span class="ss-nav-tab active">History</span>
+              <span class="ss-nav-tab">Calendar</span>
+              <span class="ss-nav-tab">Settings</span>
+            </div>
+            <div class="ss-content">
+              <div class="ss-stats-bar">
+                <div class="ss-stat-cell"><div class="ss-stat-num">4</div><div class="ss-stat-lbl">Done</div></div>
+                <div class="ss-stat-cell"><div class="ss-stat-num">120m</div><div class="ss-stat-lbl">Logged</div></div>
+                <div class="ss-stat-cell"><div class="ss-stat-num">7</div><div class="ss-stat-lbl">Streak</div></div>
+                <div class="ss-stat-cell"><div class="ss-stat-num">80%</div><div class="ss-stat-lbl">Rate</div></div>
+                <div class="ss-stat-cell"><div class="ss-stat-num">14</div><div class="ss-stat-lbl">Best</div></div>
+              </div>
+              <div class="ss-filters">
+                <span class="ss-filter active">All</span>
+                <span class="ss-filter">Completed</span>
+                <span class="ss-filter">Skipped</span>
+              </div>
+              <div class="ss-badges">
+                <div class="ss-badge on"><span class="ss-badge-icon">&#127919;</span>First Step</div>
+                <div class="ss-badge on"><span class="ss-badge-icon">&#128170;</span>Started</div>
+                <div class="ss-badge on"><span class="ss-badge-icon">&#127941;</span>Committed</div>
+                <div class="ss-badge"><span class="ss-badge-icon">&#128274;</span>Locked</div>
+              </div>
+              <div style="margin-top: 8px;">
+                <div class="ss-hist-item"><span>&#9989;</span> <span style="flex:1;font-weight:500;">Upper Body</span> <span style="color:var(--text-faint);">Today</span></div>
+                <div class="ss-hist-item"><span>&#9989;</span> <span style="flex:1;font-weight:500;">HIIT Session</span> <span style="color:var(--text-faint);">Yesterday</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ss-label">
+            <h4>Stats & Badges</h4>
+            <p>Track streaks, earn achievements, and review your history</p>
+          </div>
+        </div>
+
+        <!-- 4: Calendar -->
+        <div class="ss-item">
+          <div class="ss-display">
+            <div class="ss-hdr">
+              <h4>FitMyTime</h4>
+              <div class="ss-hdr-meta">Smart workout scheduling</div>
+            </div>
+            <div class="ss-nav">
+              <span class="ss-nav-tab">Upcoming</span>
+              <span class="ss-nav-tab">History</span>
+              <span class="ss-nav-tab active">Calendar</span>
+              <span class="ss-nav-tab">Settings</span>
+            </div>
+            <div class="ss-content">
+              <div style="text-align:center;font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">March 2026</div>
+              <div class="ss-cal-grid">
+                <div class="ss-cal-cell hdr">S</div><div class="ss-cal-cell hdr">M</div><div class="ss-cal-cell hdr">T</div><div class="ss-cal-cell hdr">W</div><div class="ss-cal-cell hdr">T</div><div class="ss-cal-cell hdr">F</div><div class="ss-cal-cell hdr">S</div>
+                <div class="ss-cal-cell">1</div>
+                <div class="ss-cal-cell done">2</div>
+                <div class="ss-cal-cell done">3</div>
+                <div class="ss-cal-cell">4</div>
+                <div class="ss-cal-cell done">5</div>
+                <div class="ss-cal-cell skip">6</div>
+                <div class="ss-cal-cell">7</div>
+                <div class="ss-cal-cell">8</div>
+                <div class="ss-cal-cell done">9</div>
+                <div class="ss-cal-cell done">10</div>
+                <div class="ss-cal-cell today">11</div>
+                <div class="ss-cal-cell">12</div>
+                <div class="ss-cal-cell">13</div>
+                <div class="ss-cal-cell">14</div>
+                <div class="ss-cal-cell">15</div>
+                <div class="ss-cal-cell">16</div>
+                <div class="ss-cal-cell">17</div>
+                <div class="ss-cal-cell">18</div>
+                <div class="ss-cal-cell">19</div>
+                <div class="ss-cal-cell">20</div>
+                <div class="ss-cal-cell">21</div>
+              </div>
+              <div class="ss-cal-detail">
+                <div class="ss-cal-detail-title">March 10</div>
+                <div class="ss-cal-detail-sub">Upper Body Strength &middot; 30 min &middot; Completed</div>
+              </div>
+            </div>
+          </div>
+          <div class="ss-label">
+            <h4>Calendar View</h4>
+            <p>See your month at a glance with workout highlights</p>
+          </div>
+        </div>
+
+        <!-- 5: Settings -->
+        <div class="ss-item">
+          <div class="ss-display">
+            <div class="ss-hdr">
+              <h4>FitMyTime</h4>
+              <div class="ss-hdr-meta">Smart workout scheduling</div>
+            </div>
+            <div class="ss-nav">
+              <span class="ss-nav-tab">Upcoming</span>
+              <span class="ss-nav-tab">History</span>
+              <span class="ss-nav-tab">Calendar</span>
+              <span class="ss-nav-tab active">Settings</span>
+            </div>
+            <div class="ss-content">
+              <div class="ss-setting-row"><span class="ss-setting-label">Fitness Goal</span><span class="ss-setting-value">General Fitness</span></div>
+              <div class="ss-setting-row"><span class="ss-setting-label">Weekly Goal</span><span class="ss-setting-value">4 workouts</span></div>
+              <div class="ss-setting-row"><span class="ss-setting-label">Notify Before</span><span class="ss-setting-value">15 minutes</span></div>
+              <div class="ss-setting-row"><span class="ss-setting-label">Duration</span><span class="ss-setting-value">20&ndash;45 min</span></div>
+              <div class="ss-setting-row"><span class="ss-setting-label">Google Calendar</span><span class="ss-setting-value connected">Connected</span></div>
+              <div class="ss-setting-row"><span class="ss-setting-label">Target Calendar</span><span class="ss-setting-value">My Workouts</span></div>
+              <div class="ss-btn-row" style="margin-top: 10px;">
+                <span class="ss-btn ss-btn-b">Edit Preferences</span>
+                <span class="ss-btn ss-btn-s">Export CSV</span>
+              </div>
+            </div>
+          </div>
+          <div class="ss-label">
+            <h4>Customizable Settings</h4>
+            <p>Weekly goals, notifications, calendar selection, and data export</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="desc-card">
+      <h3>Description</h3>
+      <div class="desc-body">
+        <p>FitMyTime is a free Chrome extension that automatically schedules personalized workouts into your Google Calendar. No more excuses &mdash; if you have a free slot, you have time to exercise.</p>
+
+        <h4>How It Works</h4>
+        <ul>
+          <li>Connect your Google Calendar with one click</li>
+          <li>Set your fitness goal, preferred days, time windows, and available equipment</li>
+          <li>FitMyTime scans your calendar daily and fills free slots with tailored workouts</li>
+          <li>Complete workouts, track your streaks, and watch your progress grow</li>
+        </ul>
+
+        <h4>Key Features</h4>
+        <ul>
+          <li><strong>Smart Scheduling</strong> &mdash; Finds gaps in your calendar and creates workout events with exercises, sets, and reps</li>
+          <li><strong>Live Countdown Timer</strong> &mdash; See a real-time countdown to your next workout right in the popup</li>
+          <li><strong>Streak Tracking</strong> &mdash; Build daily streaks with milestone celebrations at 3, 7, 14, and 30 days</li>
+          <li><strong>Post-Workout Rating</strong> &mdash; Rate intensity (1-5) and add notes after each workout to influence future suggestions</li>
+          <li><strong>Achievement Badges</strong> &mdash; Unlock badges for first workout, 5/10/50 completions, 100 minutes, and streak milestones</li>
+          <li><strong>Personal Records</strong> &mdash; Track your best sets, reps, and weight per exercise with automatic PR detection</li>
+          <li><strong>Monthly Calendar View</strong> &mdash; See your workout history at a glance on a visual monthly calendar</li>
+          <li><strong>Flexible Rescheduling</strong> &mdash; Can&rsquo;t make it? Reschedule to a new time or skip with one click</li>
+          <li><strong>Exercise Swap</strong> &mdash; Don&rsquo;t like an exercise? Swap it for an alternative targeting the same muscle group</li>
+          <li><strong>Custom Exercises</strong> &mdash; Add your own exercises to the library for more personalized workouts</li>
+          <li><strong>Multiple Calendars</strong> &mdash; Choose which Google Calendar to add workout events to</li>
+          <li><strong>Notification Preferences</strong> &mdash; Get reminded 5, 10, 15, or 30 minutes before each workout</li>
+          <li><strong>Export History</strong> &mdash; Download your complete workout history as a CSV file</li>
+          <li><strong>Progressive Overload Hints</strong> &mdash; Get suggestions to increase weight when you&rsquo;ve been consistent</li>
+          <li><strong>Weekly Goal Progress</strong> &mdash; Set a weekly workout target and track your progress with a visual bar</li>
+        </ul>
+
+        <h4>Privacy First</h4>
+        <p>FitMyTime stores all data locally on your device using Chrome&rsquo;s built-in storage. Your workout history, preferences, and calendar data never leave your browser. We don&rsquo;t have servers, accounts, or analytics.</p>
+
+        <h4>Works With</h4>
+        <ul>
+          <li>Google Chrome, Brave, Microsoft Edge (Chromium-based browsers)</li>
+          <li>Google Calendar (personal or workspace)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PROMOTIONAL TILES -->
+    <div class="promo-card">
+      <h3>Promotional Images</h3>
+      <div class="promo-grid">
+        <div class="promo-tile tile-blue">
+          <div class="promo-emoji">&#9201;</div>
+          <h4>FitMyTime</h4>
+          <p>Smart workout scheduling for Google Calendar</p>
+        </div>
+        <div class="promo-tile tile-cream">
+          <div class="promo-emoji">&#128170;</div>
+          <h4>Streaks & Badges</h4>
+          <p>Stay motivated with daily streaks and achievements</p>
+        </div>
+        <div class="promo-tile tile-cream">
+          <div class="promo-emoji">&#128197;</div>
+          <h4>Calendar Integration</h4>
+          <p>Finds free slots in your Google Calendar</p>
+        </div>
+        <div class="promo-tile tile-blue">
+          <div class="promo-emoji">&#127942;</div>
+          <h4>Track Progress</h4>
+          <p>Personal records, stats, and workout ratings</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADDITIONAL INFO -->
+    <div class="desc-card">
+      <h3>Additional Information</h3>
+      <table class="info-table">
+        <tr><td>Version</td><td>1.0.0</td></tr>
+        <tr><td>Updated</td><td>March 11, 2026</td></tr>
+        <tr><td>Size</td><td>~260 KB</td></tr>
+        <tr><td>Languages</td><td>English</td></tr>
+        <tr>
+          <td>Category</td>
+          <td><span class="info-tag">Productivity</span> <span class="info-tag">Health & Fitness</span></td>
+        </tr>
+        <tr>
+          <td>Permissions</td>
+          <td>
+            <span class="info-tag">Google Calendar (read/write)</span>
+            <span class="info-tag">Notifications</span>
+            <span class="info-tag">Alarms</span>
+            <span class="info-tag">Local Storage</span>
+          </td>
+        </tr>
+        <tr><td>Developer</td><td>FitMyTime</td></tr>
+        <tr><td>Contact</td><td>support@fitmytime.app</td></tr>
+        <tr><td>Privacy</td><td>https://fitmytime.app/privacy</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>
