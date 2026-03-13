@@ -31,8 +31,8 @@ export class WorkoutEngine {
     // Get exercises based on type, goal, and equipment
     const exercises = this.getExercises(workoutType, goal, equipment, restrictions, duration);
     
-    // Determine intensity based on goal and history
-    const intensity = this.determineIntensity(goal, lastWorkout);
+    // Determine intensity based on goal and history (including ratings)
+    const intensity = this.determineIntensity(goal, lastWorkout, history);
     
     // Get target muscle groups
     const targetMuscleGroups = this.getTargetMuscleGroups(workoutType);
@@ -204,20 +204,27 @@ export class WorkoutEngine {
     return shuffled.slice(0, count);
   }
 
-  private determineIntensity(goal: FitnessGoal, lastWorkout?: WorkoutHistory): 'low' | 'medium' | 'high' {
+  private determineIntensity(goal: FitnessGoal, lastWorkout?: WorkoutHistory, history?: WorkoutHistory[]): 'low' | 'medium' | 'high' {
     if (!lastWorkout) return 'medium';
-    
-    // Alternate intensity levels
-    const lastIntensity = lastWorkout.notes?.includes('high') ? 'high' : 
-                         lastWorkout.notes?.includes('low') ? 'low' : 'medium';
-    
-    switch (lastIntensity) {
-      case 'high':
-        return 'low';
-      case 'low':
+
+    // Adapt intensity based on recent workout ratings (if enough data)
+    if (history && history.length > 0) {
+      const rated = history.filter(w => w.completed && w.rating !== undefined).slice(0, 5);
+      if (rated.length >= 2) {
+        const avg = rated.reduce((sum, w) => sum + (w.rating ?? 3), 0) / rated.length;
+        if (avg > 3.5) return 'high';   // workouts feel easy → push harder
+        if (avg < 2.5) return 'low';    // workouts feel tough → ease off
         return 'medium';
-      default:
-        return 'high';
+      }
+    }
+
+    // Fall back to alternating intensity based on last workout's recorded level
+    const lastIntensity = lastWorkout.notes?.includes('high') ? 'high'
+      : lastWorkout.notes?.includes('low') ? 'low' : 'medium';
+    switch (lastIntensity) {
+      case 'high': return 'low';
+      case 'low':  return 'medium';
+      default:     return 'high';
     }
   }
 

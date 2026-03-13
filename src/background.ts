@@ -20,7 +20,27 @@ class BackgroundService {
     this.initialize();
   }
 
+  private async migratePreferencesToSync(): Promise<void> {
+    try {
+      const syncData: any = await new Promise(resolve =>
+        chrome.storage.sync.get(['userPreferences'], resolve)
+      );
+      if (!syncData.userPreferences) {
+        const localData = await this.storageManager.getData();
+        if (localData.userPreferences) {
+          await new Promise<void>(resolve =>
+            chrome.storage.sync.set({ userPreferences: localData.userPreferences }, resolve)
+          );
+        }
+      }
+    } catch {
+      // storage.sync may not be available in all contexts — silently ignore
+    }
+  }
+
   private async initialize() {
+    await this.migratePreferencesToSync();
+
     // Set up daily alarm for calendar scanning
     chrome.alarms.create('dailyCalendarScan', {
       delayInMinutes: 1, // Run first scan after 1 minute
@@ -164,13 +184,15 @@ class BackgroundService {
       const eventTitle = `Workout: ${this.formatWorkoutType(suggestion.type)}`;
       const eventDescription = this.formatWorkoutDescription(suggestion);
 
+      const leadMinutes = preferences?.notifyLeadMinutes ?? 15;
       const eventId = await (this.calendarService as any).addWorkoutEvent(
         eventTitle,
         eventDescription,
         startTime,
         endTime,
         undefined,
-        preferences?.targetCalendarId
+        preferences?.targetCalendarId,
+        leadMinutes
       );
 
       // Add to workout history
@@ -181,11 +203,11 @@ class BackgroundService {
         exercises: suggestion.exercises,
         duration: suggestion.duration,
         completed: false,
-        notes: `Intensity: ${suggestion.intensity}`
+        notes: `Intensity: ${suggestion.intensity}`,
+        targetMuscleGroups: suggestion.targetMuscleGroups
       });
 
       // Schedule notification before workout using user preference
-      const leadMinutes = preferences?.notifyLeadMinutes ?? 15;
       const alarmName = `workout_notify_${eventId}`;
       const notifyAt = startTime.getTime() - leadMinutes * 60 * 1000;
       if (notifyAt > Date.now()) {
@@ -229,6 +251,7 @@ class BackgroundService {
         }
 
         case 'MARK_WORKOUT_COMPLETE': {
+          chrome.alarms.clear(`workout_notify_${message.workoutId}`);
           await this.storageManager.markWorkoutComplete(message.workoutId);
           await this.storageManager.updateStreakOnComplete();
           const unlocked = await this.storageManager.checkAndUnlockBadges();
@@ -237,6 +260,7 @@ class BackgroundService {
         }
 
         case 'RATE_WORKOUT': {
+          chrome.alarms.clear(`workout_notify_${message.workoutId}`);
           await this.storageManager.markWorkoutComplete(message.workoutId, message.rating, message.postNotes);
           await this.storageManager.updateStreakOnComplete();
           const newlyUnlocked = await this.storageManager.checkAndUnlockBadges();
@@ -245,6 +269,7 @@ class BackgroundService {
         }
 
         case 'SKIP_WORKOUT': {
+          chrome.alarms.clear(`workout_notify_${message.workoutId}`);
           await this.storageManager.skipWorkout(message.workoutId);
           sendResponse({ success: true });
           break;
@@ -300,7 +325,9 @@ class BackgroundService {
 
         case 'RESCHEDULE_WORKOUT': {
           const prefs = await this.storageManager.getUserPreferences();
-          // Delete old calendar event
+          const rLeadMinutes = prefs?.notifyLeadMinutes ?? 15;
+          // Clear old notification alarm and delete old calendar event
+          chrome.alarms.clear(`workout_notify_${message.workoutId}`);
           try {
             await (this.calendarService as any).deleteEvent(message.workoutId, prefs?.targetCalendarId);
           } catch {
@@ -321,7 +348,8 @@ class BackgroundService {
             rStart,
             rEnd,
             undefined,
-            prefs?.targetCalendarId
+            prefs?.targetCalendarId,
+            rLeadMinutes
           );
           await this.storageManager.addWorkoutToHistory({
             id: rId,
@@ -330,8 +358,14 @@ class BackgroundService {
             exercises: rSuggestion.exercises,
             duration: rSuggestion.duration,
             completed: false,
-            notes: `Intensity: ${rSuggestion.intensity}`
+            notes: `Intensity: ${rSuggestion.intensity}`,
+            targetMuscleGroups: rSuggestion.targetMuscleGroups
           });
+          // Schedule new notification alarm
+          const rNotifyAt = rStart.getTime() - rLeadMinutes * 60 * 1000;
+          if (rNotifyAt > Date.now()) {
+            chrome.alarms.create(`workout_notify_${rId}`, { when: rNotifyAt });
+          }
           sendResponse({ success: true, data: { newId: rId } });
           break;
         }
@@ -363,6 +397,21 @@ class BackgroundService {
         case 'GET_BADGES': {
           const badges = await this.storageManager.getUnlockedBadges();
           sendResponse({ success: true, data: badges });
+          break;
+        }
+
+        case 'GET_FREE_SLOTS': {
+          const fsPrefs = await this.storageManager.getUserPreferences();
+          if (!fsPrefs) { sendResponse({ success: false, error: 'No preferences set' }); break; }
+          const fsNow = new Date();
+          const fsEnd = new Date(fsNow.getTime() + 72 * 60 * 60 * 1000); // next 72 hours
+          const fsSlots = await this.calendarService.findFreeTimeSlots(
+            fsNow, fsEnd,
+            fsPrefs.minDuration,
+            fsPrefs.workoutDays,
+            fsPrefs.timeWindows.map(tw => ({ start: tw.startTime, end: tw.endTime }))
+          );
+          sendResponse({ success: true, data: fsSlots });
           break;
         }
 

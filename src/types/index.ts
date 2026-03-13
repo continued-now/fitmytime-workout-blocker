@@ -37,6 +37,7 @@ export interface WorkoutHistory {
   notes?: string;
   rating?: number; // 1–5 after completion
   postNotes?: string; // optional post-workout notes
+  targetMuscleGroups?: string[];
 }
 
 export type WorkoutType =

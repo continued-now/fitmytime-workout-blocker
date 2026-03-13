@@ -31,12 +31,35 @@ export class StorageManager {
     });
   }
 
+  private async getSyncPrefs(): Promise<UserPreferences | undefined> {
+    return new Promise((resolve) => {
+      chrome.storage.sync.get(['userPreferences'], (result) => {
+        resolve(result.userPreferences as UserPreferences | undefined);
+      });
+    });
+  }
+
+  private async setSyncPrefs(preferences: UserPreferences): Promise<void> {
+    return new Promise((resolve) => {
+      chrome.storage.sync.set({ userPreferences: preferences }, resolve);
+    });
+  }
+
   async getUserPreferences(): Promise<UserPreferences | undefined> {
+    // Try sync storage first (cross-device), fall back to local
+    try {
+      const syncPrefs = await this.getSyncPrefs();
+      if (syncPrefs) return syncPrefs;
+    } catch {
+      // storage.sync not available in this context — fall through
+    }
     const data = await this.getData();
     return data.userPreferences;
   }
 
   async setUserPreferences(preferences: UserPreferences): Promise<void> {
+    // Write to both: sync for cross-device, local as offline fallback
+    try { await this.setSyncPrefs(preferences); } catch { /* ignore sync errors */ }
     await this.setData({ userPreferences: preferences });
   }
 

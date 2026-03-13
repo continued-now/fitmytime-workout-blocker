@@ -83,7 +83,8 @@ export class CalendarService {
     startTime: Date,
     endTime: Date,
     location?: string,
-    calendarId: string = 'primary'
+    calendarId: string = 'primary',
+    leadMinutes: number = 15
   ): Promise<string> {
     const event = {
       summary: title,
@@ -99,7 +100,7 @@ export class CalendarService {
       location: location,
       reminders: {
         useDefault: false,
-        overrides: [{ method: 'popup', minutes: 15 }]
+        overrides: [{ method: 'popup', minutes: leadMinutes }]
       }
     };
 

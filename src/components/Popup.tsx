@@ -9,6 +9,8 @@ import {
   PersonalRecord,
   CustomExercise,
   BADGE_DEFINITIONS,
+  Badge,
+  FreeTimeSlot,
 } from '../types';
 import { OnboardingModal } from './OnboardingModal';
 import { PreferencesForm } from './PreferencesForm';
@@ -43,7 +45,7 @@ function isToday(isoString: string): boolean {
 // --------------- Component ---------------
 
 export const Popup: React.FC = () => {
-  // ---- existing state ----
+  // ---- state ----
   const [upcomingWorkouts, setUpcomingWorkouts] = useState<CalendarEvent[]>([]);
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistory[]>([]);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
@@ -61,62 +63,77 @@ export const Popup: React.FC = () => {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [streak, setStreak] = useState(0);
-
-  // ---- new state for features ----
-  // #1 - longest streak
   const [longestStreak, setLongestStreak] = useState(0);
-  // #2 - rating flow
   const [pendingRating, setPendingRating] = useState<{ workoutId: string; rating: number; notes: string } | null>(null);
-  // #5 - pagination
   const [historyPage, setHistoryPage] = useState(1);
   const HISTORY_PAGE_SIZE = 5;
-  // #6 - reschedule
   const [rescheduling, setRescheduling] = useState<{ workoutId: string; newStart: string; newEnd: string } | null>(null);
-  // #8 - live timer
   const [liveCountdown, setLiveCountdown] = useState('');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [timerPulsing, setTimerPulsing] = useState(false);
-  // #10 - exercise swap
   const [swapping, setSwapping] = useState<{ workoutId: string; exerciseIdx: number } | null>(null);
   const [swappedExercises, setSwappedExercises] = useState<Record<string, Exercise[]>>({});
-  // #11 - calendars
   const [availableCalendars, setAvailableCalendars] = useState<GoogleCalendar[]>([]);
   const [editTargetCalendarId, setEditTargetCalendarId] = useState<string>('');
-  // #12 - history filter
-  const [historyFilter, setHistoryFilter] = useState<'all' | 'completed' | 'skipped'>('all');
-  // #13 - personal records
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'completed' | 'skipped' | 'this_week' | 'this_month'>('all');
   const [personalRecords, setPersonalRecords] = useState<Record<string, PersonalRecord>>({});
-  // #16 - badges
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
-  // #18 - mini calendar
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
   });
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(null);
-  // #22 - custom exercises
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [showCustomExerciseForm, setShowCustomExerciseForm] = useState(false);
   const [newExercise, setNewExercise] = useState<Partial<CustomExercise>>({});
 
-  // ---- load data ----
+  // ---- UX polish state ----
+  // #1 Undo skip
+  const [pendingSkipId, setPendingSkipId] = useState<string | null>(null);
+  const skipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // #8 Badge unlock overlay
+  const [badgeUnlockDisplay, setBadgeUnlockDisplay] = useState<Badge | null>(null);
+  // #12 Scan diff count
+  const [scanAddedCount, setScanAddedCount] = useState<number | null>(null);
+  // #6 Exercise accordion open state
+  const [openExercise, setOpenExercise] = useState<Record<string, boolean>>({});
+
+  // ---- Feature: Smart reschedule slot finder ----
+  const [freeSlots, setFreeSlots] = useState<FreeTimeSlot[]>([]);
+  const [isFetchingSlots, setIsFetchingSlots] = useState(false);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
+
+  // ---- Feature: Muscle group imbalance warning ----
+  const [imbalanceWarningDismissed, setImbalanceWarningDismissed] = useState(false);
+
+  // ---- Feature: Workout in-progress mode ----
+  const [inProgressId, setInProgressId] = useState<string | null>(null);
+  const [exerciseChecks, setExerciseChecks] = useState<Record<string, boolean[]>>({});
+  const [elapsedSecs, setElapsedSecs] = useState(0);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ---- UI polish state ----
+  const [completingId, setCompletingId] = useState<string | null>(null);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+
+  // ---- effects ----
+  useEffect(() => { loadData(); }, []);
+
+  // Cleanup skip timer on unmount
   useEffect(() => {
-    loadData();
+    return () => { if (skipTimerRef.current) clearTimeout(skipTimerRef.current); };
   }, []);
 
-  // #8 - live countdown timer for first upcoming workout
+  // Live countdown timer (includes pendingSkipId in deps to update first-workout logic)
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
     const firstWorkout = upcomingWorkouts.find(w => {
-      const skippedIds = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
-      return !skippedIds.has(w.id);
+      const sIds = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
+      return !sIds.has(w.id) && w.id !== pendingSkipId;
     });
 
-    if (!firstWorkout) {
-      setLiveCountdown('');
-      return;
-    }
+    if (!firstWorkout) { setLiveCountdown(''); return; }
 
     const updateTimer = () => {
       const diff = new Date(firstWorkout.startTime).getTime() - Date.now();
@@ -138,26 +155,25 @@ export const Popup: React.FC = () => {
 
     updateTimer();
     timerRef.current = setInterval(updateTimer, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [upcomingWorkouts, workoutHistory, pendingSkipId]);
 
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [upcomingWorkouts, workoutHistory]);
+  useEffect(() => { setHistoryPage(1); }, [activeTab]);
 
-  // Reset history page when tab changes
+  // Elapsed timer for in-progress workout
   useEffect(() => {
-    setHistoryPage(1);
-  }, [activeTab]);
+    if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+    if (inProgressId) {
+      setElapsedSecs(0);
+      elapsedTimerRef.current = setInterval(() => setElapsedSecs(s => s + 1), 1000);
+    }
+    return () => { if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current); };
+  }, [inProgressId]);
 
-  // Load calendars when settings tab is opened for editing
   useEffect(() => {
     if (activeTab === 'settings' && isAuthenticated) {
       chrome.runtime.sendMessage({ type: 'GET_CALENDARS' })
-        .then((res) => {
-          if (res?.success && Array.isArray(res.data)) {
-            setAvailableCalendars(res.data);
-          }
-        })
+        .then((res) => { if (res?.success && Array.isArray(res.data)) setAvailableCalendars(res.data); })
         .catch(() => {});
     }
   }, [activeTab, isAuthenticated]);
@@ -166,7 +182,6 @@ export const Popup: React.FC = () => {
     try {
       setIsLoading(true);
       setErrorMessage('');
-
       const storageData = await chrome.storage.local.get([
         'isOnboarded', 'lastCalendarScan', 'currentStreak', 'longestStreak',
         'unlockedBadges', 'personalRecords', 'customExercises',
@@ -175,42 +190,27 @@ export const Popup: React.FC = () => {
       setIsOnboarded(onboarded);
       setLastCalendarScan(storageData.lastCalendarScan);
       const newStreak = storageData.currentStreak ?? 0;
-      const milestones = [3, 7, 14, 30];
-      if (milestones.includes(newStreak)) {
-        showSuccess(`${newStreak} day streak! Keep it up!`);
-      }
+      if ([3, 7, 14, 30].includes(newStreak)) showSuccess(`${newStreak} day streak! Keep it up!`);
       setStreak(newStreak);
       setLongestStreak(storageData.longestStreak ?? 0);
       setUnlockedBadges(storageData.unlockedBadges ?? []);
       setPersonalRecords(storageData.personalRecords ?? {});
       setCustomExercises(storageData.customExercises ?? []);
 
-      if (!onboarded) {
-        setIsLoading(false);
-        return;
-      }
+      if (!onboarded) { setIsLoading(false); return; }
 
       const authResponse = await chrome.runtime.sendMessage({ type: 'CHECK_AUTH_STATUS' });
-      if (authResponse.success) {
-        setIsAuthenticated(authResponse.data.isAuthenticated);
-      }
+      if (authResponse.success) setIsAuthenticated(authResponse.data.isAuthenticated);
 
       const workoutsResponse = await chrome.runtime.sendMessage({ type: 'GET_UPCOMING_WORKOUTS' });
-      if (workoutsResponse.success) {
-        setUpcomingWorkouts(workoutsResponse.data);
-      } else {
-        setErrorMessage('Failed to load upcoming workouts.');
-      }
+      if (workoutsResponse.success) setUpcomingWorkouts(workoutsResponse.data);
+      else setErrorMessage('Failed to load upcoming workouts.');
 
       const historyResponse = await chrome.runtime.sendMessage({ type: 'GET_WORKOUT_HISTORY' });
-      if (historyResponse.success) {
-        setWorkoutHistory(historyResponse.data);
-      }
+      if (historyResponse.success) setWorkoutHistory(historyResponse.data);
 
       const prefsResponse = await chrome.runtime.sendMessage({ type: 'GET_USER_PREFERENCES' });
-      if (prefsResponse.success) {
-        setPreferences(prefsResponse.data);
-      }
+      if (prefsResponse.success) setPreferences(prefsResponse.data);
     } catch (error: any) {
       setErrorMessage('Failed to connect to the extension. Please try reloading.');
       console.error('Error loading data:', error);
@@ -224,24 +224,26 @@ export const Popup: React.FC = () => {
     setTimeout(() => setSuccessMessage(''), 2500);
   };
 
-  // Derived
+  // ---- derived ----
   const skippedIds = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
-  const visibleUpcoming = upcomingWorkouts.filter(w => !skippedIds.has(w.id));
+  // #1 — optimistically hide pending-skip workout from list
+  const visibleUpcoming = upcomingWorkouts.filter(w => !skippedIds.has(w.id) && w.id !== pendingSkipId);
 
-  const completedThisWeek = workoutHistory.filter(w => {
-    return w.completed && (Date.now() - new Date(w.date).getTime()) / 86400000 <= 7;
-  }).length;
+  const completedThisWeek = workoutHistory.filter(w =>
+    w.completed && (Date.now() - new Date(w.date).getTime()) / 86400000 <= 7
+  ).length;
 
   const formatCountdown = (startTime: string) => {
     const diff = new Date(startTime).getTime() - Date.now();
     if (diff <= 0) return 'now';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    if (h > 0) return `in ${h}h ${m}m`;
-    return `in ${m}m`;
+    return h > 0 ? `in ${h}h ${m}m` : `in ${m}m`;
   };
 
-  // #2 - mark complete: now shows rating UI instead
+  // ---- handlers ----
+
+  // #3 Rating as modal — initiate only, no inline UI
   const handleInitiateComplete = (workoutId: string) => {
     setPendingRating({ workoutId, rating: 0, notes: '' });
     setRescheduling(null);
@@ -256,16 +258,25 @@ export const Popup: React.FC = () => {
         rating: pendingRating.rating,
         postNotes: pendingRating.notes,
       });
+      if (inProgressId === pendingRating.workoutId) setInProgressId(null);
+      const completedId = pendingRating.workoutId;
       setPendingRating(null);
-      showSuccess('Workout marked as complete!');
-      // #16 - check for newly unlocked badges
-      if (response?.newlyUnlocked && Array.isArray(response.newlyUnlocked) && response.newlyUnlocked.length > 0) {
-        const badgeNames = response.newlyUnlocked
-          .map((id: string) => BADGE_DEFINITIONS.find(b => b.id === id)?.name)
-          .filter(Boolean)
-          .join(', ');
-        showSuccess(`Badge unlocked: ${badgeNames}!`);
+      setCompletingId(completedId);
+      setTimeout(() => setCompletingId(null), 700);
+      // #8 Badge unlock overlay
+      if (response?.newlyUnlocked?.length > 0) {
+        const badgeDef = BADGE_DEFINITIONS.find(b => b.id === response.newlyUnlocked[0]);
+        if (badgeDef) {
+          setBadgeUnlockDisplay(badgeDef);
+          setTimeout(() => setBadgeUnlockDisplay(null), 2200);
+        }
         setUnlockedBadges(prev => [...prev, ...response.newlyUnlocked]);
+        const names = response.newlyUnlocked
+          .map((id: string) => BADGE_DEFINITIONS.find(b => b.id === id)?.name)
+          .filter(Boolean).join(', ');
+        showSuccess(`Badge unlocked: ${names}!`);
+      } else {
+        showSuccess('Workout marked as complete!');
       }
       await loadData();
     } catch (error) {
@@ -274,7 +285,22 @@ export const Popup: React.FC = () => {
     }
   };
 
-  const handleSkip = async (workoutId: string) => {
+  // #1 Skip with 5s undo
+  const handleSkip = (workoutId: string) => {
+    // If there's already a pending skip, fire it immediately before starting the new one
+    if (pendingSkipId && skipTimerRef.current) {
+      clearTimeout(skipTimerRef.current);
+      executeSkip(pendingSkipId);
+    }
+    setPendingSkipId(workoutId);
+    skipTimerRef.current = setTimeout(() => {
+      executeSkip(workoutId);
+      setPendingSkipId(null);
+      skipTimerRef.current = null;
+    }, 5000);
+  };
+
+  const executeSkip = async (workoutId: string) => {
     try {
       await chrome.runtime.sendMessage({ type: 'SKIP_WORKOUT', workoutId });
       await loadData();
@@ -283,13 +309,35 @@ export const Popup: React.FC = () => {
     }
   };
 
+  const handleUndoSkip = () => {
+    if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
+    setPendingSkipId(null);
+    skipTimerRef.current = null;
+  };
+
+  // #12 Scan with diff count
   const handleTriggerScan = async () => {
     if (isScanning) return;
+    const prevCount = visibleUpcoming.length;
     try {
       setIsScanning(true);
       setErrorMessage('');
+      setScanAddedCount(null);
       await chrome.runtime.sendMessage({ type: 'TRIGGER_CALENDAR_SCAN' });
-      await loadData();
+
+      const workoutsResponse = await chrome.runtime.sendMessage({ type: 'GET_UPCOMING_WORKOUTS' });
+      if (workoutsResponse.success) {
+        setUpcomingWorkouts(workoutsResponse.data);
+        const currentSkipped = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
+        const newVisible = workoutsResponse.data.filter((w: CalendarEvent) => !currentSkipped.has(w.id));
+        const added = newVisible.length - prevCount;
+        if (added > 0) setScanAddedCount(added);
+      }
+      const historyResponse = await chrome.runtime.sendMessage({ type: 'GET_WORKOUT_HISTORY' });
+      if (historyResponse.success) setWorkoutHistory(historyResponse.data);
+
+      const storageData = await chrome.storage.local.get(['lastCalendarScan']);
+      setLastCalendarScan(storageData.lastCalendarScan);
     } catch (error) {
       setErrorMessage('Calendar scan failed. Make sure you are connected to Google Calendar.');
       console.error('Error triggering scan:', error);
@@ -305,7 +353,7 @@ export const Popup: React.FC = () => {
       setIsAuthenticated(false);
       setConfirmDisconnect(false);
       showSuccess('Google Calendar disconnected.');
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to disconnect. Please try again.');
     } finally {
       setIsDisconnecting(false);
@@ -317,12 +365,9 @@ export const Popup: React.FC = () => {
     setErrorMessage('');
     try {
       const response = await chrome.runtime.sendMessage({ type: 'AUTHENTICATE_GOOGLE' });
-      if (response.success) {
-        setIsAuthenticated(true);
-      } else {
-        setErrorMessage('Authentication failed. Please try again.');
-      }
-    } catch (error) {
+      if (response.success) setIsAuthenticated(true);
+      else setErrorMessage('Authentication failed. Please try again.');
+    } catch {
       setErrorMessage('Could not connect to Google. Check your internet connection.');
     } finally {
       setIsConnecting(false);
@@ -332,13 +377,8 @@ export const Popup: React.FC = () => {
   const handleSaveSettings = async () => {
     try {
       const prefsToSave = { ...editPreferences };
-      if (editTargetCalendarId) {
-        prefsToSave.targetCalendarId = editTargetCalendarId;
-      }
-      await chrome.runtime.sendMessage({
-        type: 'SET_USER_PREFERENCES',
-        preferences: prefsToSave as UserPreferences,
-      });
+      if (editTargetCalendarId) prefsToSave.targetCalendarId = editTargetCalendarId;
+      await chrome.runtime.sendMessage({ type: 'SET_USER_PREFERENCES', preferences: prefsToSave as UserPreferences });
       setPreferences(prefsToSave as UserPreferences);
       setIsEditingSettings(false);
       showSuccess('Preferences saved.');
@@ -348,7 +388,6 @@ export const Popup: React.FC = () => {
     }
   };
 
-  // #6 - reschedule
   const handleConfirmReschedule = async () => {
     if (!rescheduling) return;
     try {
@@ -363,6 +402,8 @@ export const Popup: React.FC = () => {
         duration,
       });
       setRescheduling(null);
+      setFreeSlots([]);
+      setSelectedSlotIndex(null);
       showSuccess('Workout rescheduled.');
       await loadData();
     } catch {
@@ -370,30 +411,50 @@ export const Popup: React.FC = () => {
     }
   };
 
-  // #15 - Export CSV
+  const handleRescheduleOpen = async (workoutId: string, workout: CalendarEvent) => {
+    if (rescheduling?.workoutId === workoutId) {
+      setRescheduling(null);
+      setFreeSlots([]);
+      setSelectedSlotIndex(null);
+      return;
+    }
+    setRescheduling({
+      workoutId,
+      newStart: toLocalDatetimeValue(workout.startTime),
+      newEnd: toLocalDatetimeValue(workout.endTime),
+    });
+    setSelectedSlotIndex(null);
+    setFreeSlots([]);
+    setIsFetchingSlots(true);
+    try {
+      const res = await chrome.runtime.sendMessage({ type: 'GET_FREE_SLOTS' });
+      if (res?.success && Array.isArray(res.data)) {
+        setFreeSlots(res.data.slice(0, 5));
+      }
+    } catch {
+      // no free slots available — fall back to manual picker only
+    } finally {
+      setIsFetchingSlots(false);
+    }
+  };
+
   const handleExportHistory = () => {
     const headers = 'date,type,duration,completed,skipped,rating,notes\n';
-    const rows = workoutHistory.map(w => [
-      w.date, w.type, w.duration, w.completed, w.skipped || false, w.rating || '', w.postNotes || '',
-    ].join(','));
+    const rows = workoutHistory.map(w =>
+      [w.date, w.type, w.duration, w.completed, w.skipped || false, w.rating || '', w.postNotes || ''].join(',')
+    );
     const csv = headers + rows.join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'fitmytime-history.csv';
-    a.click();
+    a.href = url; a.download = 'fitmytime-history.csv'; a.click();
     URL.revokeObjectURL(url);
   };
 
-  // #22 - Add custom exercise
   const handleAddCustomExercise = async () => {
     if (!newExercise.name || !newExercise.category) return;
     try {
-      await chrome.runtime.sendMessage({
-        type: 'ADD_CUSTOM_EXERCISE',
-        exercise: newExercise,
-      });
+      await chrome.runtime.sendMessage({ type: 'ADD_CUSTOM_EXERCISE', exercise: newExercise });
       setCustomExercises(prev => [...prev, newExercise as CustomExercise]);
       setNewExercise({});
       setShowCustomExerciseForm(false);
@@ -403,53 +464,61 @@ export const Popup: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
-  };
 
-  const formatDuration = (startTime: string, endTime: string) => {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    const duration = (end.getTime() - start.getTime()) / (1000 * 60);
-    return `${Math.round(duration)} min`;
-  };
+  const formatDuration = (startTime: string, endTime: string) =>
+    `${Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000)} min`;
 
   if (isLoading) {
     return (
       <div className="popup">
-        <div className="loading">
-          <div className="spinner" />
-          <p>Loading...</p>
-        </div>
+        <div className="loading"><div className="spinner" /><p>Loading...</p></div>
       </div>
     );
   }
 
-  if (!isOnboarded) {
-    return <OnboardingModal onComplete={loadData} />;
-  }
+  if (!isOnboarded) return <OnboardingModal onComplete={loadData} />;
 
-  // ---- Weekly progress (feature #4) ----
   const weeklyGoal = preferences?.weeklyGoal;
-  const weeklyProgress = weeklyGoal
-    ? Math.min(completedThisWeek / weeklyGoal, 1)
-    : 0;
+  const weeklyProgress = weeklyGoal ? Math.min(completedThisWeek / weeklyGoal, 1) : 0;
 
+  const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const TAB_ORDER = ['upcoming', 'history', 'calendar', 'settings'] as const;
+  const tabIndex = TAB_ORDER.indexOf(activeTab);
+
+  // ---- render helpers ----
+
+  // Muscle group imbalance warning
+  const getMuscleGroupWarning = (): string | null => {
+    const completed = workoutHistory.filter(w => w.completed);
+    if (completed.length < 3) return null;
+    const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+    const recent = completed.filter(w => new Date(w.date).getTime() > fiveDaysAgo);
+    const muscleTypeMap: Record<string, string[]> = {
+      upper_body_strength: ['upper'], lower_body_strength: ['lower'],
+      cardio: ['cardio'], hiit: ['cardio'], full_body: ['upper', 'lower'],
+      core: ['core'], flexibility: ['flexibility'],
+    };
+    const hit = new Set<string>();
+    recent.forEach(w => {
+      (w.targetMuscleGroups || muscleTypeMap[w.type] || []).forEach(g => hit.add(g));
+    });
+    if (!hit.has('lower')) return "Legs haven't been worked in 5+ days — consider a lower body session.";
+    if (!hit.has('upper')) return "Upper body hasn't been trained in 5+ days — try an upper body session.";
+    if (!hit.has('cardio')) return "No cardio in 5+ days — a quick session would help balance things out.";
+    return null;
+  };
+
+  // #4 Empty state with direction — shows actual time windows + shortcut to edit
   const renderEmptyState = () => {
     if (!isAuthenticated) {
       return (
         <div className="empty-state">
           <p>Connect Google Calendar to get started.</p>
-          <button onClick={() => setActiveTab('settings')} className="btn-primary">
-            Go to Settings
-          </button>
+          <button onClick={() => setActiveTab('settings')} className="btn-primary">Go to Settings</button>
         </div>
       );
     }
@@ -457,9 +526,7 @@ export const Popup: React.FC = () => {
       return (
         <div className="empty-state">
           <p>Complete your setup to enable workout scheduling.</p>
-          <button onClick={() => setActiveTab('settings')} className="btn-primary">
-            Open Settings
-          </button>
+          <button onClick={() => setActiveTab('settings')} className="btn-primary">Open Settings</button>
         </div>
       );
     }
@@ -475,317 +542,444 @@ export const Popup: React.FC = () => {
     }
     return (
       <div className="empty-state">
-        <p>No free time found in your preferred windows.</p>
-        <p>Try adjusting your time windows in Settings or click Refresh.</p>
-      </div>
-    );
-  };
-
-  const renderUpcomingWorkouts = () => (
-    <div className="tab-content">
-      <div className="header">
-        <h3>Upcoming Workouts</h3>
+        <p className="empty-state-title">No free time found</p>
+        {preferences.timeWindows?.length > 0 && (
+          <div className="empty-state-windows">
+            <p className="empty-state-windows-label">Current windows:</p>
+            <div className="empty-state-chips">
+              {preferences.timeWindows.map((w, i) => (
+                <span key={i} className="empty-state-chip">
+                  {w.day.slice(0, 3)} {w.startTime}–{w.endTime}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <button
-          onClick={handleTriggerScan}
-          className="btn-secondary"
-          disabled={isScanning}
+          onClick={() => {
+            setEditPreferences(preferences);
+            setEditTargetCalendarId(preferences.targetCalendarId || '');
+            setIsEditingSettings(true);
+            setActiveTab('settings');
+          }}
+          className="btn-primary"
+          style={{ marginTop: 12 }}
         >
-          {isScanning ? 'Scanning...' : 'Refresh'}
+          Edit Time Windows
         </button>
       </div>
+    );
+  };
 
-      {lastCalendarScan && (
-        <p className="last-scan">
-          Last scanned {formatDistanceToNow(new Date(lastCalendarScan), { addSuffix: true })}
-        </p>
-      )}
-
-      {visibleUpcoming.length === 0 ? renderEmptyState() : (
-        <div className="workout-list">
-          {visibleUpcoming.map((workout, idx) => {
-            const isFirst = idx === 0;
-            const showLiveTimer = isFirst && liveCountdown !== '';
-            const cardToday = isToday(workout.startTime);
-            const isPulse = isFirst && timerPulsing;
-            const isPendingRating = pendingRating?.workoutId === workout.id;
-            const isReschedulingThis = rescheduling?.workoutId === workout.id;
-            const exercises = swappedExercises[workout.id] || ([] as Exercise[]);
-
-            let cardClass = 'workout-card';
-            if (cardToday) cardClass += ' today';
-            if (isPulse) cardClass += ' pulse';
-
-            return (
-              <div key={workout.id} className={cardClass}>
-                {/* #8 - Live timer */}
-                {showLiveTimer && (
-                  <div className="timer-display">
-                    <div className="live-timer">{liveCountdown}</div>
-                    <div className="live-timer-label">until workout</div>
-                  </div>
-                )}
-
-                <div className="workout-header">
-                  <h4>{workout.title}</h4>
-                  <span className="duration">
-                    {formatDuration(workout.startTime, workout.endTime)}
-                  </span>
-                </div>
-                <div className="workout-details">
-                  <p className="time">
-                    {formatDate(workout.startTime)}
-                    {isFirst && !showLiveTimer && (
-                      <span className="countdown"> · {formatCountdown(workout.startTime)}</span>
-                    )}
-                  </p>
-                  {workout.location && (
-                    <p className="location">📍 {workout.location}</p>
+  // #6 Animated accordion replaces <details>
+  const renderExerciseAccordion = (workout: CalendarEvent, exercises: Exercise[]) => {
+    const isOpen = openExercise[workout.id] ?? false;
+    return (
+      <div className="exercise-accordion">
+        <button
+          className="exercise-accordion-toggle"
+          onClick={() => setOpenExercise(prev => ({ ...prev, [workout.id]: !isOpen }))}
+        >
+          <span>View exercises</span>
+          <span className={`accordion-chevron${isOpen ? ' open' : ''}`}>›</span>
+        </button>
+        <div className={`exercise-accordion-body${isOpen ? ' open' : ''}`}>
+          {exercises.length > 0 ? (
+            exercises.map((ex, exIdx) => {
+              const muscleGroup = ex.muscleGroup || 'general';
+              const alts = MUSCLE_ALTERNATIVES[muscleGroup] || MUSCLE_ALTERNATIVES['general'];
+              const isSwappingThis = swapping?.workoutId === workout.id && swapping.exerciseIdx === exIdx;
+              return (
+                <div key={exIdx} className="exercise-row">
+                  <span className="exercise-name">{ex.name} — {ex.sets}x{ex.reps}</span>
+                  <button
+                    className="btn-swap"
+                    onClick={() => setSwapping(isSwappingThis ? null : { workoutId: workout.id, exerciseIdx: exIdx })}
+                  >
+                    Swap
+                  </button>
+                  {isSwappingThis && (
+                    <select
+                      className="swap-select"
+                      defaultValue=""
+                      onChange={(e) => {
+                        if (!e.target.value) return;
+                        const newExs = [...exercises];
+                        newExs[exIdx] = { ...ex, name: e.target.value };
+                        setSwappedExercises(prev => ({ ...prev, [workout.id]: newExs }));
+                        setSwapping(null);
+                      }}
+                    >
+                      <option value="">Pick alternative…</option>
+                      {alts.filter(a => a !== ex.name).map(a => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
                   )}
                 </div>
-
-                {/* Exercises with swap (feature #10) */}
-                {workout.description && (
-                  <details className="workout-description">
-                    <summary>View exercises</summary>
-                    {exercises.length > 0 ? (
-                      <div style={{ marginTop: 8 }}>
-                        {exercises.map((ex, exIdx) => {
-                          const muscleGroup = ex.muscleGroup || 'general';
-                          const alts = MUSCLE_ALTERNATIVES[muscleGroup] || MUSCLE_ALTERNATIVES['general'];
-                          const isSwappingThis = swapping?.workoutId === workout.id && swapping.exerciseIdx === exIdx;
-                          return (
-                            <div key={exIdx} className="exercise-row">
-                              <span className="exercise-name">
-                                {ex.name} — {ex.sets}x{ex.reps}
-                              </span>
-                              <button
-                                className="btn-swap"
-                                onClick={() => setSwapping(isSwappingThis ? null : { workoutId: workout.id, exerciseIdx: exIdx })}
-                              >
-                                Swap
-                              </button>
-                              {isSwappingThis && (
-                                <select
-                                  className="swap-select"
-                                  defaultValue=""
-                                  onChange={(e) => {
-                                    if (!e.target.value) return;
-                                    const newExs = [...exercises];
-                                    newExs[exIdx] = { ...ex, name: e.target.value };
-                                    setSwappedExercises(prev => ({ ...prev, [workout.id]: newExs }));
-                                    setSwapping(null);
-                                  }}
-                                >
-                                  <option value="">Pick alternative…</option>
-                                  {alts.filter(a => a !== ex.name).map(a => (
-                                    <option key={a} value={a}>{a}</option>
-                                  ))}
-                                </select>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <pre>{workout.description}</pre>
-                    )}
-                  </details>
-                )}
-
-                <div className="workout-actions">
-                  <button
-                    onClick={() => handleInitiateComplete(workout.id)}
-                    className="btn-complete"
-                    disabled={!!isPendingRating}
-                  >
-                    Mark Complete
-                  </button>
-                  <button onClick={() => handleSkip(workout.id)} className="btn-skip">
-                    Skip
-                  </button>
-                  {/* #6 - Reschedule button */}
-                  <button
-                    className="btn-reschedule"
-                    onClick={() => {
-                      if (isReschedulingThis) {
-                        setRescheduling(null);
-                      } else {
-                        setRescheduling({
-                          workoutId: workout.id,
-                          newStart: toLocalDatetimeValue(workout.startTime),
-                          newEnd: toLocalDatetimeValue(workout.endTime),
-                        });
-                        setPendingRating(null);
-                      }
-                    }}
-                  >
-                    Reschedule
-                  </button>
-                </div>
-
-                {/* #2 - Rating section */}
-                {isPendingRating && (
-                  <div className="rating-section">
-                    <p>How was your workout?</p>
-                    <div className="star-rating">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <button
-                          key={star}
-                          className="star-btn"
-                          onClick={() => setPendingRating(prev => prev ? { ...prev, rating: star } : null)}
-                        >
-                          {star <= (pendingRating?.rating || 0) ? '⭐' : '☆'}
-                        </button>
-                      ))}
-                    </div>
-                    {pendingRating.rating > 0 && (
-                      <>
-                        <textarea
-                          className="rating-notes"
-                          rows={2}
-                          placeholder="Optional notes (e.g., felt strong today)…"
-                          value={pendingRating.notes}
-                          onChange={(e) => setPendingRating(prev => prev ? { ...prev, notes: e.target.value } : null)}
-                        />
-                        <div className="workout-actions">
-                          <button className="btn-complete" onClick={handleRateWorkout}>
-                            Done
-                          </button>
-                          <button className="btn-secondary" onClick={() => setPendingRating(null)}>
-                            Cancel
-                          </button>
-                        </div>
-                      </>
-                    )}
-                    {pendingRating.rating === 0 && (
-                      <button className="btn-secondary" onClick={() => setPendingRating(null)}>
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* #6 - Reschedule form */}
-                {isReschedulingThis && rescheduling && (
-                  <div className="reschedule-form">
-                    <p>Reschedule this workout</p>
-                    <div className="reschedule-inputs">
-                      <div>
-                        <label>New start time</label>
-                        <input
-                          type="datetime-local"
-                          value={rescheduling.newStart}
-                          onChange={(e) => setRescheduling(prev => prev ? { ...prev, newStart: e.target.value } : null)}
-                        />
-                      </div>
-                      <div>
-                        <label>New end time</label>
-                        <input
-                          type="datetime-local"
-                          value={rescheduling.newEnd}
-                          onChange={(e) => setRescheduling(prev => prev ? { ...prev, newEnd: e.target.value } : null)}
-                        />
-                      </div>
-                    </div>
-                    <div className="reschedule-actions">
-                      <button className="btn-primary" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleConfirmReschedule}>
-                        Confirm Reschedule
-                      </button>
-                      <button className="btn-secondary" onClick={() => setRescheduling(null)}>
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-
-  // #1 - History stats with longest streak
-  const renderHistoryStats = () => {
-    const week = workoutHistory.filter(w => {
-      const daysAgo = (Date.now() - new Date(w.date).getTime()) / 86400000;
-      return daysAgo <= 7;
-    });
-    const completed = week.filter(w => w.completed).length;
-    const totalMins = week.filter(w => w.completed).reduce((sum, w) => sum + w.duration, 0);
-    const rate = week.length > 0 ? Math.round((completed / week.length) * 100) : 0;
-    return (
-      <div className="stats-card">
-        <div className="stat">
-          <span className="stat-value">{completed}</span>
-          <span className="stat-label">Done this week</span>
-        </div>
-        <div className="stat">
-          <span className="stat-value">{totalMins}m</span>
-          <span className="stat-label">Time logged</span>
-        </div>
-        <div className="stat">
-          <span className="stat-value">{streak}</span>
-          <span className="stat-label">Day streak</span>
-        </div>
-        <div className="stat">
-          <span className="stat-value">{rate}%</span>
-          <span className="stat-label">Completion</span>
-        </div>
-        <div className="stat">
-          <span className="stat-value">{longestStreak}</span>
-          <span className="stat-label">Best streak</span>
+              );
+            })
+          ) : (
+            <pre className="exercise-accordion-text">{workout.description}</pre>
+          )}
         </div>
       </div>
     );
   };
 
-  // #17 - Progressive overload: count exercise appearances in last 5 completed workouts
+  const renderRescheduleForm = () => {
+    if (!rescheduling) return null;
+    return (
+      <div className="reschedule-form">
+        <p>Reschedule this workout</p>
+        {isFetchingSlots && <p className="slot-loading">Finding free slots…</p>}
+        {!isFetchingSlots && freeSlots.length > 0 && (
+          <div className="slot-options">
+            <p className="slot-options-label">Available free slots:</p>
+            {freeSlots.map((slot, i) => (
+              <label key={i} className={`slot-option${selectedSlotIndex === i ? ' selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="reschedule-slot"
+                  checked={selectedSlotIndex === i}
+                  onChange={() => {
+                    setSelectedSlotIndex(i);
+                    setRescheduling(prev => prev ? {
+                      ...prev,
+                      newStart: toLocalDatetimeValue(slot.startTime),
+                      newEnd: toLocalDatetimeValue(slot.endTime),
+                    } : null);
+                  }}
+                />
+                <span>{formatDate(slot.startTime)} · {slot.duration} min</span>
+              </label>
+            ))}
+            <p className="slot-custom-label">Or pick a custom time:</p>
+          </div>
+        )}
+        <div className="reschedule-inputs">
+          <div>
+            <label>New start time</label>
+            <input
+              type="datetime-local"
+              value={rescheduling.newStart}
+              onChange={(e) => {
+                setSelectedSlotIndex(null);
+                setRescheduling(prev => prev ? { ...prev, newStart: e.target.value } : null);
+              }}
+            />
+          </div>
+          <div>
+            <label>New end time</label>
+            <input
+              type="datetime-local"
+              value={rescheduling.newEnd}
+              onChange={(e) => {
+                setSelectedSlotIndex(null);
+                setRescheduling(prev => prev ? { ...prev, newEnd: e.target.value } : null);
+              }}
+            />
+          </div>
+        </div>
+        <div className="reschedule-actions">
+          <button className="btn-primary" style={{ fontSize: 12, padding: '6px 12px' }} onClick={handleConfirmReschedule}>
+            Confirm Reschedule
+          </button>
+          <button className="btn-secondary" onClick={() => {
+            setRescheduling(null);
+            setFreeSlots([]);
+            setSelectedSlotIndex(null);
+          }}>Cancel</button>
+        </div>
+      </div>
+    );
+  };
+
+  // #2 Today hero card — separate prominent section
+  const renderTodayHeroCard = (workout: CalendarEvent) => {
+    const historyEntry = workoutHistory.find(h => h.id === workout.id);
+    const exercises = swappedExercises[workout.id]?.length > 0
+      ? swappedExercises[workout.id]
+      : (historyEntry?.exercises || []);
+
+    // ---- In-progress mode ----
+    if (inProgressId === workout.id) {
+      const checks = exerciseChecks[workout.id] || [];
+      const mm = String(Math.floor(elapsedSecs / 60)).padStart(2, '0');
+      const ss = String(elapsedSecs % 60).padStart(2, '0');
+      return (
+        <div key={workout.id} className="today-hero-card in-progress">
+          <div className="today-label in-progress-label">In Progress</div>
+          <div className="today-hero-body">
+            <div className="workout-header">
+              <h4 className="today-hero-title">{workout.title}</h4>
+              <span className="duration">{formatDuration(workout.startTime, workout.endTime)}</span>
+            </div>
+            <div className="elapsed-timer">
+              <span className="elapsed-time">{mm}:{ss}</span>
+              <span className="elapsed-label">elapsed</span>
+            </div>
+            {exercises.length > 0 && (
+              <div className="in-progress-checklist">
+                {exercises.map((ex, i) => (
+                  <label key={i} className={`checklist-item${checks[i] ? ' done' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={checks[i] || false}
+                      onChange={(e) => {
+                        const newChecks = [...(exerciseChecks[workout.id] || Array(exercises.length).fill(false))];
+                        newChecks[i] = e.target.checked;
+                        setExerciseChecks(prev => ({ ...prev, [workout.id]: newChecks }));
+                      }}
+                    />
+                    <span>{ex.name} — {ex.sets}×{ex.reps}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="in-progress-actions">
+              <button onClick={() => handleInitiateComplete(workout.id)} className="btn-complete btn-complete-full">
+                Mark Done
+              </button>
+              <button onClick={() => setInProgressId(null)} className="btn-skip">Stop</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---- Normal mode ----
+    const isFirst = visibleUpcoming[0]?.id === workout.id;
+    const showLiveTimer = isFirst && liveCountdown !== '';
+    const isPulse = isFirst && timerPulsing;
+    const isReschedulingThis = rescheduling?.workoutId === workout.id;
+    const isCompleting = completingId === workout.id;
+    return (
+      <div key={workout.id} className={`today-hero-card${isPulse ? ' pulse' : ''}${isCompleting ? ' completing' : ''}`}>
+        <div className="today-label">Today</div>
+        <div className="today-hero-body">
+          <div className="workout-header">
+            <h4 className="today-hero-title">{workout.title}</h4>
+            <span className="duration">{formatDuration(workout.startTime, workout.endTime)}</span>
+          </div>
+          <p className="today-hero-time">
+            {formatDate(workout.startTime)}
+            {!showLiveTimer && <span className="countdown"> · {formatCountdown(workout.startTime)}</span>}
+          </p>
+          {/* #11 Timer with entrance animation */}
+          {showLiveTimer && (
+            <div className="timer-display">
+              <div className="live-timer">{liveCountdown}</div>
+              <div className="live-timer-label">until workout</div>
+            </div>
+          )}
+          {workout.location && <p className="location">📍 {workout.location}</p>}
+          {workout.description && renderExerciseAccordion(workout, exercises)}
+          {/* #10 Button hierarchy: start = filled primary, mark done = secondary, skip = ghost, reschedule = text */}
+          <div className="today-hero-actions">
+            <button
+              onClick={() => setInProgressId(workout.id)}
+              className="btn-complete btn-complete-full"
+            >
+              Start Workout
+            </button>
+            <div className="today-hero-secondary-actions">
+              <button onClick={() => handleInitiateComplete(workout.id)} className="btn-markdone">Mark Done</button>
+              <button onClick={() => handleSkip(workout.id)} className="btn-skip">Skip</button>
+              <button className="btn-reschedule" onClick={() => handleRescheduleOpen(workout.id, workout)}>
+                Reschedule
+              </button>
+            </div>
+          </div>
+          {isReschedulingThis && renderRescheduleForm()}
+        </div>
+      </div>
+    );
+  };
+
+  // Regular (future) workout card
+  const renderWorkoutCard = (workout: CalendarEvent, isFirst: boolean) => {
+    const showLiveTimer = isFirst && liveCountdown !== '';
+    const isPulse = isFirst && timerPulsing;
+    const isReschedulingThis = rescheduling?.workoutId === workout.id;
+    const historyEntry = workoutHistory.find(h => h.id === workout.id);
+    const exercises = swappedExercises[workout.id]?.length > 0
+      ? swappedExercises[workout.id]
+      : (historyEntry?.exercises || []);
+    return (
+      <div key={workout.id} className={`workout-card${isPulse ? ' pulse' : ''}${completingId === workout.id ? ' completing' : ''}`}>
+        {showLiveTimer && (
+          <div className="timer-display">
+            <div className="live-timer">{liveCountdown}</div>
+            <div className="live-timer-label">until workout</div>
+          </div>
+        )}
+        <div className="workout-header">
+          <h4>{workout.title}</h4>
+          <span className="duration">{formatDuration(workout.startTime, workout.endTime)}</span>
+        </div>
+        <div className="workout-details">
+          <p className="time">
+            {formatDate(workout.startTime)}
+            {isFirst && !showLiveTimer && <span className="countdown"> · {formatCountdown(workout.startTime)}</span>}
+          </p>
+          {workout.location && <p className="location">📍 {workout.location}</p>}
+        </div>
+        {workout.description && renderExerciseAccordion(workout, exercises)}
+        {/* #10 Button hierarchy */}
+        <div className="workout-actions">
+          <button onClick={() => handleInitiateComplete(workout.id)} className="btn-complete">Mark Done</button>
+          <button onClick={() => handleSkip(workout.id)} className="btn-skip">Skip</button>
+          <button className="btn-reschedule" onClick={() => handleRescheduleOpen(workout.id, workout)}>
+            Reschedule
+          </button>
+        </div>
+        {isReschedulingThis && renderRescheduleForm()}
+      </div>
+    );
+  };
+
+  const renderUpcomingWorkouts = () => {
+    const todayWorkouts = visibleUpcoming.filter(w => isToday(w.startTime));
+    const futureWorkouts = visibleUpcoming.filter(w => !isToday(w.startTime));
+    return (
+      <div className="tab-content">
+        <div className="header">
+          <h3>Upcoming Workouts</h3>
+          {/* #12 Refresh button with scan diff badge */}
+          <button onClick={handleTriggerScan} className="btn-secondary" disabled={isScanning}>
+            {isScanning ? 'Scanning...' : 'Refresh'}
+            {scanAddedCount !== null && scanAddedCount > 0 && (
+              <span className="scan-added-badge">+{scanAddedCount}</span>
+            )}
+          </button>
+        </div>
+        {lastCalendarScan && (
+          <p className="last-scan">
+            Last scanned {formatDistanceToNow(new Date(lastCalendarScan), { addSuffix: true })}
+          </p>
+        )}
+        {!imbalanceWarningDismissed && (() => {
+          const warning = getMuscleGroupWarning();
+          return warning ? (
+            <div className="imbalance-banner">
+              <span>{warning}</span>
+              <button className="imbalance-dismiss" onClick={() => setImbalanceWarningDismissed(true)}>✕</button>
+            </div>
+          ) : null;
+        })()}
+        {visibleUpcoming.length === 0 ? renderEmptyState() : (
+          <div className="workout-list">
+            {/* #2 Today hero section */}
+            {todayWorkouts.map(w => renderTodayHeroCard(w))}
+            {futureWorkouts.length > 0 && (
+              <>
+                {todayWorkouts.length > 0 && <div className="upcoming-section-label">Upcoming</div>}
+                {futureWorkouts.map((workout) => {
+                  const isFirst = visibleUpcoming[0]?.id === workout.id;
+                  return renderWorkoutCard(workout, isFirst);
+                })}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // #5 Stats card — adapts to the active history filter
+  const renderHistoryStats = () => {
+    const isMonthView = historyFilter === 'this_month';
+    const period = isMonthView
+      ? workoutHistory.filter(w => {
+          const d = new Date(w.date); const n = new Date();
+          return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+        })
+      : workoutHistory.filter(w => (Date.now() - new Date(w.date).getTime()) / 86400000 <= 7);
+    const periodLabel = isMonthView ? 'this month' : 'this week';
+    const completed = period.filter(w => w.completed).length;
+    const totalMins = period.filter(w => w.completed).reduce((sum, w) => sum + w.duration, 0);
+    const rate = period.length > 0 ? Math.round((completed / period.length) * 100) : 0;
+    return (
+      <div className="stats-card">
+        <div className="stats-row">
+          <div className="stat">
+            <span className="stat-value">{completed}</span>
+            <span className="stat-label">Done {periodLabel}</span>
+          </div>
+          <div className="stat">
+            <span className="stat-value">{totalMins}m</span>
+            <span className="stat-label">Time logged</span>
+          </div>
+          <div className="stat">
+            <span className="stat-value">{streak}</span>
+            <span className="stat-label">Day streak</span>
+          </div>
+        </div>
+        <div className="stats-row stats-row-bottom">
+          <div className="stat">
+            <span className="stat-value">{rate}%</span>
+            <span className="stat-label">Completion</span>
+          </div>
+          <div className="stat">
+            <span className="stat-value">{longestStreak}</span>
+            <span className="stat-label">Best streak</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const getOverloadHints = (): Set<string> => {
     const lastFive = workoutHistory.filter(w => w.completed).slice(0, 5);
     const counts: Record<string, number> = {};
-    lastFive.forEach(w => {
-      w.exercises.forEach(ex => {
-        counts[ex.name] = (counts[ex.name] || 0) + 1;
-      });
-    });
+    lastFive.forEach(w => w.exercises.forEach(ex => { counts[ex.name] = (counts[ex.name] || 0) + 1; }));
     return new Set(Object.entries(counts).filter(([, c]) => c >= 3).map(([name]) => name));
   };
 
   const renderWorkoutHistory = () => {
-    // #12 - filter
     const filtered = workoutHistory.filter(w => {
       if (historyFilter === 'completed') return w.completed;
       if (historyFilter === 'skipped') return w.skipped;
+      if (historyFilter === 'this_week') return (Date.now() - new Date(w.date).getTime()) / 86400000 <= 7;
+      if (historyFilter === 'this_month') {
+        const d = new Date(w.date); const n = new Date();
+        return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+      }
       return true;
     });
-
     const totalPages = Math.ceil(filtered.length / HISTORY_PAGE_SIZE);
     const paginated = filtered.slice(0, historyPage * HISTORY_PAGE_SIZE);
     const overloadHints = getOverloadHints();
+
+    const FILTER_LABELS: Record<string, string> = {
+      all: 'All', completed: 'Completed', skipped: 'Skipped',
+      this_week: 'This Week', this_month: 'This Month',
+    };
 
     return (
       <div className="tab-content">
         <h3>Recent Workouts</h3>
         {renderHistoryStats()}
-
-        {/* #12 - filter buttons */}
         <div className="history-filter">
-          {(['all', 'completed', 'skipped'] as const).map(f => (
+          {(['all', 'completed', 'skipped', 'this_week', 'this_month'] as const).map(f => (
             <button
               key={f}
               className={`filter-btn ${historyFilter === f ? 'active' : ''}`}
               onClick={() => { setHistoryFilter(f); setHistoryPage(1); }}
             >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {FILTER_LABELS[f]}
             </button>
           ))}
         </div>
-
         {filtered.length === 0 ? (
-          <div className="empty-state">
-            <p>No workout history yet.</p>
-          </div>
+          <div className="empty-state"><p>
+            {historyFilter === 'completed' ? 'No completed workouts yet.' :
+             historyFilter === 'skipped' ? 'No skipped workouts.' :
+             historyFilter === 'this_week' ? 'No workouts logged this week.' :
+             historyFilter === 'this_month' ? 'No workouts logged this month.' :
+             'No workout history yet.'}
+          </p></div>
         ) : (
           <>
             <div className="history-list">
@@ -795,51 +989,54 @@ export const Popup: React.FC = () => {
                 );
                 const hasOverload = workout.exercises.some(e => overloadHints.has(e.name));
                 return (
-                  <div key={workout.id} className="history-item">
+                  <div
+                    key={workout.id}
+                    className={`history-item${expandedHistoryId === workout.id ? ' expanded' : ''}`}
+                    onClick={() => setExpandedHistoryId(expandedHistoryId === workout.id ? null : workout.id)}
+                  >
                     <div className="history-header">
                       <span className={`status ${workout.completed ? 'completed' : workout.skipped ? 'skipped' : 'pending'}`}>
                         {workout.completed ? '✅' : workout.skipped ? '⏭️' : '⏳'}
                       </span>
                       <span className="workout-type">
-                        {workout.type.split('_').map(word =>
-                          word.charAt(0).toUpperCase() + word.slice(1)
-                        ).join(' ')}
+                        {workout.type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       </span>
-                      {/* #13 - PR badge */}
                       {hasPR && <span className="pr-badge">🏆 PR</span>}
-                      <span className="date">
-                        {new Date(workout.date).toLocaleDateString()}
-                      </span>
+                      <span className="date">{new Date(workout.date).toLocaleDateString()}</span>
+                      <span className="history-chevron">{expandedHistoryId === workout.id ? '▴' : '▾'}</span>
                     </div>
                     <div className="history-details">
                       <span className="duration">{workout.duration} min</span>
-                      <span className="exercises">
-                        {workout.exercises.length} exercises
-                      </span>
+                      <span className="exercises">{workout.exercises.length} exercises</span>
                       {workout.rating && <span>{'⭐'.repeat(workout.rating)}</span>}
                       {workout.postNotes && <span style={{ fontStyle: 'italic' }}>{workout.postNotes}</span>}
                     </div>
-                    {/* #17 - Overload hint */}
                     {hasOverload && workout.completed && (
-                      <div className="overload-hint">
-                        Consider increasing weight on repeated exercises
-                      </div>
+                      <div className="overload-hint">Consider increasing weight on repeated exercises</div>
                     )}
+                    <div className={`history-exercises-body${expandedHistoryId === workout.id ? ' open' : ''}`}>
+                      {workout.exercises.length > 0 ? (
+                        <div className="history-exercise-list">
+                          {workout.exercises.map((ex, i) => (
+                            <span key={i} className="history-exercise-chip">
+                              {ex.name} {ex.sets}×{ex.reps}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="history-no-exercises">No exercise details recorded.</p>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
-
-            {/* #5 - Show more */}
             {historyPage < totalPages && (
-              <button className="show-more-btn" onClick={() => setHistoryPage(p => p + 1)}>
-                Show more
-              </button>
+              <button className="show-more-btn" onClick={() => setHistoryPage(p => p + 1)}>Show more</button>
             )}
           </>
         )}
-
-        {/* #16 - Badges section */}
+        {/* #8 Badge section */}
         <div className="badges-section">
           <h4>Badges</h4>
           <div className="badges-grid">
@@ -848,15 +1045,9 @@ export const Popup: React.FC = () => {
               return (
                 <div key={badge.id} className={`badge-item ${isUnlocked ? 'unlocked' : 'locked'}`} title={badge.description}>
                   {isUnlocked ? (
-                    <>
-                      <span className="badge-icon">{badge.icon}</span>
-                      <span className="badge-name">{badge.name}</span>
-                    </>
+                    <><span className="badge-icon">{badge.icon}</span><span className="badge-name">{badge.name}</span></>
                   ) : (
-                    <>
-                      <span className="badge-locked-icon">🔒</span>
-                      <span className="badge-name">{badge.name}</span>
-                    </>
+                    <><span className="badge-locked-icon">🔒</span><span className="badge-name">{badge.name}</span></>
                   )}
                 </div>
               );
@@ -867,15 +1058,13 @@ export const Popup: React.FC = () => {
     );
   };
 
-  // #18 - Mini calendar tab
   const renderCalendarTab = () => {
     const { year, month } = calendarMonth;
-    const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+    const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
     const monthName = new Date(year, month, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
 
-    // Build a map of date string → workout status
     const workoutByDate: Record<string, { status: 'completed' | 'skipped' | 'pending'; workout: WorkoutHistory | CalendarEvent }> = {};
     workoutHistory.forEach(w => {
       const key = w.date.split('T')[0];
@@ -884,9 +1073,7 @@ export const Popup: React.FC = () => {
     });
     upcomingWorkouts.forEach(w => {
       const key = w.startTime.split('T')[0];
-      if (!workoutByDate[key]) {
-        workoutByDate[key] = { status: 'pending', workout: w };
-      }
+      if (!workoutByDate[key]) workoutByDate[key] = { status: 'pending', workout: w };
     });
 
     const cells: (number | null)[] = [];
@@ -901,29 +1088,15 @@ export const Popup: React.FC = () => {
     return (
       <div className="tab-content calendar-view">
         <div className="calendar-nav">
-          <button onClick={() => {
-            setCalendarMonth(prev => {
-              const d = new Date(prev.year, prev.month - 1, 1);
-              return { year: d.getFullYear(), month: d.getMonth() };
-            });
-            setSelectedCalendarDay(null);
-          }}>‹</button>
+          <button onClick={() => { setCalendarMonth(prev => { const d = new Date(prev.year, prev.month - 1, 1); return { year: d.getFullYear(), month: d.getMonth() }; }); setSelectedCalendarDay(null); }}>‹</button>
           <h4>{monthName}</h4>
-          <button onClick={() => {
-            setCalendarMonth(prev => {
-              const d = new Date(prev.year, prev.month + 1, 1);
-              return { year: d.getFullYear(), month: d.getMonth() };
-            });
-            setSelectedCalendarDay(null);
-          }}>›</button>
+          <button onClick={() => { setCalendarMonth(prev => { const d = new Date(prev.year, prev.month + 1, 1); return { year: d.getFullYear(), month: d.getMonth() }; }); setSelectedCalendarDay(null); }}>›</button>
         </div>
-
         <div className="calendar-day-headers">
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
             <div key={d} className="calendar-day-header">{d}</div>
           ))}
         </div>
-
         <div className="calendar-grid">
           {cells.map((day, idx) => {
             if (day === null) return <div key={`empty-${idx}`} />;
@@ -933,20 +1106,14 @@ export const Popup: React.FC = () => {
             let dayClass = 'calendar-day';
             if (isTodayMarker) dayClass += ' today-marker';
             if (entry) dayClass += ` has-workout ${entry.status}`;
-
             return (
-              <div
-                key={day}
-                className={dayClass}
-                onClick={() => setSelectedCalendarDay(selectedCalendarDay === day ? null : day)}
-              >
+              <div key={day} className={dayClass} onClick={() => setSelectedCalendarDay(selectedCalendarDay === day ? null : day)}>
                 {day}
                 {entry && <div className="calendar-day-dot" />}
               </div>
             );
           })}
         </div>
-
         {selectedWorkout && selectedDateStr && (
           <div className="calendar-detail-popup">
             <button className="calendar-detail-close" onClick={() => setSelectedCalendarDay(null)}>✕</button>
@@ -958,10 +1125,7 @@ export const Popup: React.FC = () => {
                 <p>Status: {selectedWorkout.status}</p>
               </>
             ) : (
-              <>
-                <p>{(selectedWorkout.workout as CalendarEvent).title}</p>
-                <p>Status: Pending</p>
-              </>
+              <><p>{(selectedWorkout.workout as CalendarEvent).title}</p><p>Status: Pending</p></>
             )}
           </div>
         )}
@@ -969,15 +1133,29 @@ export const Popup: React.FC = () => {
     );
   };
 
+  // #7 Settings with persistent pencil icon in header
   const renderSettings = () => (
     <div className="tab-content">
-      <h3>Settings</h3>
+      <div className="settings-header-row">
+        <h3>Settings</h3>
+        {!isEditingSettings && (
+          <button
+            className="btn-icon-edit"
+            title="Edit preferences"
+            onClick={() => {
+              setEditPreferences(preferences || {});
+              setEditTargetCalendarId(preferences?.targetCalendarId || '');
+              setIsEditingSettings(true);
+            }}
+          >
+            ✏️
+          </button>
+        )}
+      </div>
 
       {isEditingSettings ? (
         <>
           <PreferencesForm preferences={editPreferences} onChange={setEditPreferences} />
-
-          {/* #11 - Target calendar picker */}
           {availableCalendars.length > 0 && (
             <div className="target-calendar-section">
               <label>Target Calendar (for new workouts)</label>
@@ -992,7 +1170,6 @@ export const Popup: React.FC = () => {
               </select>
             </div>
           )}
-
           <div className="settings-actions">
             <button onClick={handleSaveSettings} className="btn-primary">Save</button>
             <button onClick={() => setIsEditingSettings(false)} className="btn-secondary">Cancel</button>
@@ -1002,83 +1179,30 @@ export const Popup: React.FC = () => {
         <>
           {preferences ? (
             <div className="settings-list">
-              <div className="setting-item">
-                <label>Fitness Goal:</label>
-                <span>{preferences.fitnessGoal.replace(/_/g, ' ')}</span>
-              </div>
-
-              <div className="setting-item">
-                <label>Workout Days:</label>
-                <span>{preferences.workoutDays.join(', ')}</span>
-              </div>
-
-              <div className="setting-item">
-                <label>Duration Range:</label>
-                <span>{preferences.minDuration}-{preferences.maxDuration} minutes</span>
-              </div>
-
-              <div className="setting-item">
-                <label>Equipment:</label>
-                <span>{preferences.equipment.length > 0 ? preferences.equipment.join(', ') : 'None'}</span>
-              </div>
-
-              {preferences.injuries.length > 0 && (
-                <div className="setting-item">
-                  <label>Injuries:</label>
-                  <span>{preferences.injuries.join(', ')}</span>
-                </div>
-              )}
-
-              {preferences.weeklyGoal && (
-                <div className="setting-item">
-                  <label>Weekly Goal:</label>
-                  <span>{preferences.weeklyGoal} workouts/week</span>
-                </div>
-              )}
-
-              {preferences.notifyLeadMinutes && (
-                <div className="setting-item">
-                  <label>Notifications:</label>
-                  <span>{preferences.notifyLeadMinutes} min before</span>
-                </div>
-              )}
-
+              <div className="setting-item"><label>Fitness Goal:</label><span>{preferences.fitnessGoal.replace(/_/g, ' ')}</span></div>
+              <div className="setting-item"><label>Workout Days:</label><span>{preferences.workoutDays.join(', ')}</span></div>
+              <div className="setting-item"><label>Duration Range:</label><span>{preferences.minDuration}-{preferences.maxDuration} minutes</span></div>
+              <div className="setting-item"><label>Equipment:</label><span>{preferences.equipment.length > 0 ? preferences.equipment.join(', ') : 'None'}</span></div>
+              {preferences.injuries.length > 0 && <div className="setting-item"><label>Injuries:</label><span>{preferences.injuries.join(', ')}</span></div>}
+              {preferences.weeklyGoal && <div className="setting-item"><label>Weekly Goal:</label><span>{preferences.weeklyGoal} workouts/week</span></div>}
+              {preferences.notifyLeadMinutes && <div className="setting-item"><label>Notifications:</label><span>{preferences.notifyLeadMinutes} min before</span></div>}
               <div className="setting-item">
                 <label>Google Calendar:</label>
-                {isAuthenticated ? (
-                  <span className="auth-status connected">Connected</span>
-                ) : (
-                  <span className="auth-status disconnected">Not connected</span>
-                )}
+                {isAuthenticated
+                  ? <span className="auth-status connected">Connected</span>
+                  : <span className="auth-status disconnected">Not connected</span>
+                }
               </div>
             </div>
           ) : (
             <p>No preferences found. Please complete setup.</p>
           )}
-
           <div className="settings-actions">
-            <button
-              onClick={() => {
-                setEditPreferences(preferences || {});
-                setEditTargetCalendarId(preferences?.targetCalendarId || '');
-                setIsEditingSettings(true);
-              }}
-              className="btn-primary"
-            >
-              Edit Preferences
-            </button>
-            <button
-              onClick={handleTriggerScan}
-              className="btn-secondary"
-              disabled={isScanning}
-            >
+            <button onClick={handleTriggerScan} className="btn-secondary" disabled={isScanning}>
               {isScanning ? 'Scanning...' : 'Manually Scan Calendar'}
             </button>
-            {/* #15 - Export CSV */}
             {workoutHistory.length > 0 && (
-              <button onClick={handleExportHistory} className="btn-export">
-                Export History CSV
-              </button>
+              <button onClick={handleExportHistory} className="btn-export">Export History CSV</button>
             )}
             {isAuthenticated ? (
               confirmDisconnect ? (
@@ -1087,14 +1211,10 @@ export const Popup: React.FC = () => {
                   <button onClick={handleDisconnect} className="btn-danger" disabled={isDisconnecting}>
                     {isDisconnecting ? 'Disconnecting...' : 'Yes, Disconnect'}
                   </button>
-                  <button onClick={() => setConfirmDisconnect(false)} className="btn-secondary">
-                    Cancel
-                  </button>
+                  <button onClick={() => setConfirmDisconnect(false)} className="btn-secondary">Cancel</button>
                 </div>
               ) : (
-                <button onClick={() => setConfirmDisconnect(true)} className="btn-danger">
-                  Disconnect Google
-                </button>
+                <button onClick={() => setConfirmDisconnect(true)} className="btn-danger">Disconnect Google</button>
               )
             ) : (
               <button onClick={handleConnect} className="btn-primary" disabled={isConnecting}>
@@ -1102,8 +1222,6 @@ export const Popup: React.FC = () => {
               </button>
             )}
           </div>
-
-          {/* #22 - Custom exercises section */}
           <div className="custom-exercises-section">
             <h4>Custom Exercises</h4>
             {customExercises.length > 0 && (
@@ -1120,21 +1238,12 @@ export const Popup: React.FC = () => {
               <p style={{ fontSize: 13, color: '#6c757d', margin: '4px 0 8px' }}>No custom exercises yet.</p>
             )}
             {!showCustomExerciseForm ? (
-              <button className="btn-secondary" onClick={() => setShowCustomExerciseForm(true)}>
-                + Add Exercise
-              </button>
+              <button className="btn-secondary" onClick={() => setShowCustomExerciseForm(true)}>+ Add Exercise</button>
             ) : (
               <div className="custom-exercise-form">
-                <input
-                  type="text"
-                  placeholder="Exercise name"
-                  value={newExercise.name || ''}
-                  onChange={(e) => setNewExercise(prev => ({ ...prev, name: e.target.value }))}
-                />
-                <select
-                  value={newExercise.category || ''}
-                  onChange={(e) => setNewExercise(prev => ({ ...prev, category: e.target.value as any }))}
-                >
+                <input type="text" placeholder="Exercise name" value={newExercise.name || ''}
+                  onChange={(e) => setNewExercise(prev => ({ ...prev, name: e.target.value }))} />
+                <select value={newExercise.category || ''} onChange={(e) => setNewExercise(prev => ({ ...prev, category: e.target.value as any }))}>
                   <option value="">Select category…</option>
                   <option value="upper_body_strength">Upper Body Strength</option>
                   <option value="lower_body_strength">Lower Body Strength</option>
@@ -1144,42 +1253,22 @@ export const Popup: React.FC = () => {
                   <option value="full_body">Full Body</option>
                   <option value="core">Core</option>
                 </select>
-                <input
-                  type="text"
-                  placeholder="Muscle group (optional)"
-                  value={newExercise.muscleGroup || ''}
-                  onChange={(e) => setNewExercise(prev => ({ ...prev, muscleGroup: e.target.value }))}
-                />
+                <input type="text" placeholder="Muscle group (optional)" value={newExercise.muscleGroup || ''}
+                  onChange={(e) => setNewExercise(prev => ({ ...prev, muscleGroup: e.target.value }))} />
                 <div className="custom-exercise-row">
                   <label>Sets</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={newExercise.sets || ''}
-                    onChange={(e) => setNewExercise(prev => ({ ...prev, sets: parseInt(e.target.value) }))}
-                  />
+                  <input type="number" min="1" max="10" value={newExercise.sets || ''}
+                    onChange={(e) => setNewExercise(prev => ({ ...prev, sets: parseInt(e.target.value) }))} />
                   <label>Reps</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={newExercise.reps || ''}
-                    onChange={(e) => setNewExercise(prev => ({ ...prev, reps: parseInt(e.target.value) }))}
-                  />
+                  <input type="number" min="1" max="100" value={newExercise.reps || ''}
+                    onChange={(e) => setNewExercise(prev => ({ ...prev, reps: parseInt(e.target.value) }))} />
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button
-                    className="btn-primary"
-                    style={{ fontSize: 12, padding: '6px 12px' }}
-                    onClick={handleAddCustomExercise}
-                    disabled={!newExercise.name || !newExercise.category}
-                  >
+                  <button className="btn-primary" style={{ fontSize: 12, padding: '6px 12px' }}
+                    onClick={handleAddCustomExercise} disabled={!newExercise.name || !newExercise.category}>
                     Add Exercise
                   </button>
-                  <button className="btn-secondary" onClick={() => { setShowCustomExerciseForm(false); setNewExercise({}); }}>
-                    Cancel
-                  </button>
+                  <button className="btn-secondary" onClick={() => { setShowCustomExerciseForm(false); setNewExercise({}); }}>Cancel</button>
                 </div>
               </div>
             )}
@@ -1191,27 +1280,75 @@ export const Popup: React.FC = () => {
 
   return (
     <div className="popup">
+      {/* #1 Undo skip toast */}
+      {pendingSkipId && (
+        <div className="undo-skip-toast">
+          <span>Workout skipped</span>
+          <button className="undo-skip-btn" onClick={handleUndoSkip}>Undo</button>
+        </div>
+      )}
+
+      {/* #8 Badge unlock overlay */}
+      {badgeUnlockDisplay && (
+        <div className="badge-unlock-overlay">
+          <div className="badge-unlock-card">
+            <div className="badge-unlock-icon">{badgeUnlockDisplay.icon}</div>
+            <div className="badge-unlock-title">Badge Unlocked!</div>
+            <div className="badge-unlock-name">{badgeUnlockDisplay.name}</div>
+          </div>
+        </div>
+      )}
+
+      {/* #3 Rating as modal sheet — global overlay, not inline */}
+      {pendingRating && (
+        <div className="rating-overlay" onClick={() => setPendingRating(null)}>
+          <div className="rating-sheet" onClick={(e) => e.stopPropagation()}>
+            <h3 className="rating-sheet-title">How was your workout?</h3>
+            <div className="star-rating rating-sheet-stars">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  className="star-btn"
+                  onClick={() => setPendingRating(prev => prev ? { ...prev, rating: star } : null)}
+                >
+                  {star <= (pendingRating.rating || 0) ? '⭐' : '☆'}
+                </button>
+              ))}
+            </div>
+            {pendingRating.rating > 0 && (
+              <textarea
+                className="rating-notes"
+                rows={2}
+                placeholder="Optional notes (e.g., felt strong today)…"
+                value={pendingRating.notes}
+                onChange={(e) => setPendingRating(prev => prev ? { ...prev, notes: e.target.value } : null)}
+              />
+            )}
+            <div className="rating-sheet-actions">
+              {pendingRating.rating > 0 && (
+                <button className="btn-primary" onClick={handleRateWorkout}>Save</button>
+              )}
+              <button className="btn-rating-cancel" onClick={() => setPendingRating(null)}>
+                {pendingRating.rating === 0 ? 'Skip rating' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="popup-header">
         <h2>FitMyTime</h2>
         <div className="header-meta">
-          <p>Smart workout scheduling</p>
-          {streak > 0 && (
-            <span className="streak-badge">{streak} day streak</span>
-          )}
+          <p>{todayStr}</p>
+          {streak > 0 && <span className="streak-badge">{streak} day streak</span>}
         </div>
       </div>
 
-      {/* #4 - Weekly progress bar */}
       {weeklyGoal && (
         <div className="weekly-progress">
-          <div className="weekly-progress-label">
-            {completedThisWeek} of {weeklyGoal} this week
-          </div>
+          <div className="weekly-progress-label">{completedThisWeek} of {weeklyGoal} this week</div>
           <div className="progress-bar-track">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${Math.round(weeklyProgress * 100)}%` }}
-            />
+            <div className="progress-bar-fill" style={{ width: `${Math.round(weeklyProgress * 100)}%` }} />
           </div>
         </div>
       )}
@@ -1222,42 +1359,23 @@ export const Popup: React.FC = () => {
           <button onClick={() => setErrorMessage('')} className="error-dismiss">✕</button>
         </div>
       )}
+      {successMessage && <div className="success-banner"><span>{successMessage}</span></div>}
 
-      {successMessage && (
-        <div className="success-banner">
-          <span>{successMessage}</span>
-        </div>
-      )}
-
+      {/* Tab transitions + sliding indicator */}
       <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-          onClick={() => setActiveTab('upcoming')}
-        >
+        <div className="tab-slider" style={{ transform: `translateX(${tabIndex * 100}%)` }} />
+        <button className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`} onClick={() => setActiveTab('upcoming')}>
           Upcoming
-          {upcomingWorkouts.length > 0 && (
-            <span className="tab-badge">{upcomingWorkouts.length}</span>
-          )}
+          {upcomingWorkouts.length > 0 && <span className="tab-badge">{upcomingWorkouts.length}</span>}
         </button>
-        <button
-          className={`tab ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => setActiveTab('history')}
-        >
+        <button className={`tab ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
           History
-          {completedThisWeek > 0 && (
-            <span className="tab-badge">{completedThisWeek}</span>
-          )}
+          {completedThisWeek > 0 && <span className="tab-badge">{completedThisWeek}</span>}
         </button>
-        <button
-          className={`tab ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => setActiveTab('calendar')}
-        >
+        <button className={`tab ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => setActiveTab('calendar')}>
           Calendar
         </button>
-        <button
-          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-        >
+        <button className={`tab ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
           Settings
         </button>
       </div>
