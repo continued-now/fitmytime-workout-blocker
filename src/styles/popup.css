@@ -70,6 +70,16 @@
   transition: width 0.3s ease;
 }
 
+.weekly-goal-nudge {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4px;
+}
+
+.weekly-goal-nudge.behind {
+  color: #fde68a;
+}
+
 .tabs {
   display: flex;
   background: #f8f9fa;
@@ -1398,7 +1408,30 @@
   font-size: 12px;
 }
 
+.custom-exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .custom-exercise-item span { color: #495057; }
+
+.btn-delete-exercise {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn-delete-exercise:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
 
 .custom-exercise-form {
   display: flex;
@@ -1513,7 +1546,7 @@
   overflow: hidden;
   transition: max-height 0.22s ease;
 }
-.history-exercises-body.open { max-height: 200px; }
+.history-exercises-body.open { max-height: 280px; }
 .history-exercise-list {
   display: flex;
   flex-wrap: wrap;
@@ -1533,6 +1566,15 @@
   font-size: 12px;
   color: #9ca3af;
   margin: 8px 0 0;
+}
+
+.history-post-notes {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 8px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid #f0f0f0;
 }
 
 /* ---- Muscle group imbalance warning ---- */

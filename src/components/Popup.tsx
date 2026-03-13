@@ -451,6 +451,16 @@ export const Popup: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDeleteCustomExercise = async (name: string) => {
+    try {
+      await chrome.runtime.sendMessage({ type: 'DELETE_CUSTOM_EXERCISE', name });
+      setCustomExercises(prev => prev.filter(ex => ex.name !== name));
+      showSuccess('Exercise removed.');
+    } catch {
+      setErrorMessage('Failed to remove exercise.');
+    }
+  };
+
   const handleAddCustomExercise = async () => {
     if (!newExercise.name || !newExercise.category) return;
     try {
@@ -1009,7 +1019,6 @@ export const Popup: React.FC = () => {
                       <span className="duration">{workout.duration} min</span>
                       <span className="exercises">{workout.exercises.length} exercises</span>
                       {workout.rating && <span>{'⭐'.repeat(workout.rating)}</span>}
-                      {workout.postNotes && <span style={{ fontStyle: 'italic' }}>{workout.postNotes}</span>}
                     </div>
                     {hasOverload && workout.completed && (
                       <div className="overload-hint">Consider increasing weight on repeated exercises</div>
@@ -1025,6 +1034,9 @@ export const Popup: React.FC = () => {
                         </div>
                       ) : (
                         <p className="history-no-exercises">No exercise details recorded.</p>
+                      )}
+                      {workout.postNotes && (
+                        <p className="history-post-notes">"{workout.postNotes}"</p>
                       )}
                     </div>
                   </div>
@@ -1228,8 +1240,15 @@ export const Popup: React.FC = () => {
               <div className="custom-exercise-list">
                 {customExercises.map((ex, i) => (
                   <div key={i} className="custom-exercise-item">
-                    <span>{ex.name}</span>
-                    <span style={{ color: '#6c757d', fontSize: 11 }}>{ex.category.replace(/_/g, ' ')} · {ex.sets}×{ex.reps}</span>
+                    <div className="custom-exercise-info">
+                      <span>{ex.name}</span>
+                      <span style={{ color: '#6c757d', fontSize: 11 }}>{ex.category.replace(/_/g, ' ')} · {ex.sets}×{ex.reps}</span>
+                    </div>
+                    <button
+                      className="btn-delete-exercise"
+                      onClick={() => handleDeleteCustomExercise(ex.name)}
+                      title="Remove exercise"
+                    >✕</button>
                   </div>
                 ))}
               </div>
@@ -1350,6 +1369,18 @@ export const Popup: React.FC = () => {
           <div className="progress-bar-track">
             <div className="progress-bar-fill" style={{ width: `${Math.round(weeklyProgress * 100)}%` }} />
           </div>
+          {completedThisWeek < weeklyGoal && (() => {
+            const remaining = weeklyGoal - completedThisWeek;
+            const daysLeft = 7 - new Date().getDay() || 7; // 1–7, treating Sun=7
+            const isBehind = remaining > daysLeft;
+            return (
+              <div className={`weekly-goal-nudge${isBehind ? ' behind' : ''}`}>
+                {isBehind
+                  ? `${remaining} more needed — you're behind this week`
+                  : `${remaining} more to hit your goal`}
+              </div>
+            );
+          })()}
         </div>
       )}
 

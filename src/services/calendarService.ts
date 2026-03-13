@@ -84,8 +84,16 @@ export class CalendarService {
     endTime: Date,
     location?: string,
     calendarId: string = 'primary',
-    leadMinutes: number = 15
+    leadMinutes: number = 15,
+    colorId?: string
   ): Promise<string> {
+    const overrides: { method: string; minutes: number }[] = [
+      { method: 'popup', minutes: leadMinutes }
+    ];
+    if (leadMinutes > 10) {
+      overrides.push({ method: 'popup', minutes: 5 });
+    }
+
     const event = {
       summary: title,
       description: description,
@@ -100,8 +108,9 @@ export class CalendarService {
       location: location,
       reminders: {
         useDefault: false,
-        overrides: [{ method: 'popup', minutes: leadMinutes }]
-      }
+        overrides
+      },
+      ...(colorId ? { colorId } : {})
     };
 
     const encodedId = encodeURIComponent(calendarId);

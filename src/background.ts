@@ -2,8 +2,10 @@ import { CalendarService } from './services/calendarService';
 import { WorkoutEngine } from './services/workoutEngine';
 import { StorageManager } from './utils/storage';
 import { GoogleAuthService } from './services/googleAuth';
-import { CustomExercise } from './types';
+import { CustomExercise, PersonalRecord } from './types';
 import { addDays } from 'date-fns';
+
+const TRACKER_BASE_URL = 'https://fitmytime.app/tracker.html';
 
 class BackgroundService {
   private calendarService: CalendarService;
@@ -181,8 +183,12 @@ class BackgroundService {
       const startTime = new Date(slot.startTime);
       const endTime = new Date(slot.endTime);
 
-      const eventTitle = `Workout: ${this.formatWorkoutType(suggestion.type)}`;
-      const eventDescription = this.formatWorkoutDescription(suggestion);
+      const personalRecords = await this.storageManager.getPersonalRecords();
+      const trackerUrl = this.generateTrackerUrl(suggestion, personalRecords);
+      const estCal = suggestion.duration * (suggestion.intensity === 'high' ? 8 : suggestion.intensity === 'medium' ? 6 : 4);
+      const eventTitle = `${this.formatWorkoutType(suggestion.type)} | ${suggestion.duration}min | ~${estCal} cal`;
+      const eventDescription = this.formatWorkoutDescription(suggestion, personalRecords, trackerUrl);
+      const colorId = this.getWorkoutColor(suggestion.type);
 
       const leadMinutes = preferences?.notifyLeadMinutes ?? 15;
       const eventId = await (this.calendarService as any).addWorkoutEvent(
@@ -192,7 +198,8 @@ class BackgroundService {
         endTime,
         undefined,
         preferences?.targetCalendarId,
-        leadMinutes
+        leadMinutes,
+        colorId
       );
 
       // Add to workout history
@@ -226,19 +233,97 @@ class BackgroundService {
     ).join(' ');
   }
 
-  private formatWorkoutDescription(suggestion: any): string {
-    const exercises = suggestion.exercises.map((exercise: any) => {
-      if (exercise.duration) {
-        return `${exercise.name}: ${exercise.sets} sets, ${exercise.duration}s`;
-      } else {
-        return `${exercise.name}: ${exercise.sets} sets x ${exercise.reps} reps`;
-      }
-    }).join('\n');
+  private getWorkoutColor(type: string): string {
+    const colorMap: Record<string, string> = {
+      upper_body_strength: '11', // Tomato
+      lower_body_strength: '6',  // Tangerine
+      cardio: '7',               // Peacock
+      hiit: '4',                 // Flamingo
+      flexibility: '2',          // Sage
+      full_body: '9',            // Blueberry
+      core: '5',                 // Banana
+    };
+    return colorMap[type] || '7';
+  }
 
-    return `Workout Type: ${this.formatWorkoutType(suggestion.type)}\n` +
-           `Intensity: ${suggestion.intensity}\n` +
-           `Target Areas: ${suggestion.targetMuscleGroups.join(', ')}\n\n` +
-           `Exercises:\n${exercises}`;
+  private getWarmupCooldown(type: string): { warmup: string; cooldown: string } {
+    const warmups: Record<string, string> = {
+      upper_body_strength: 'Arm circles (30s) > Shoulder rolls (30s) > 10 Jumping jacks > 5 Push-ups',
+      lower_body_strength: '10 Bodyweight squats > Leg swings (30s/side) > Hip circles (30s) > 10 Jumping jacks',
+      cardio: 'March in place (30s) > High knees (30s) > Arm circles (20s) > 10 Jumping jacks',
+      hiit: 'March in place (30s) > High knees (30s) > Arm circles (20s) > 5 Bodyweight squats',
+      flexibility: 'Deep breathing (30s) > Gentle neck rolls > Cat-cow (5 reps) > Standing side stretch',
+      full_body: 'Arm circles (30s) > 10 Bodyweight squats > Hip circles (20s) > 10 Jumping jacks',
+      core: 'Deep breathing (30s) > Hip circles (30s) > Cat-cow (5 reps) > Dead bug (5/side)',
+    };
+    const cooldowns: Record<string, string> = {
+      upper_body_strength: 'Chest stretch (30s/side) > Tricep stretch (30s/side) > Shoulder stretch (30s/side)',
+      lower_body_strength: 'Hamstring stretch (30s/side) > Quad stretch (30s/side) > Calf stretch (30s/side)',
+      cardio: 'Walk in place (1 min) > Hamstring stretch (30s/side) > Deep breathing (30s)',
+      hiit: 'Walk in place (1 min) > Forward fold (30s) > Child\'s pose (30s)',
+      flexibility: 'Savasana (1 min) > Deep breathing (30s)',
+      full_body: 'Forward fold (30s) > Chest stretch (30s/side) > Child\'s pose (30s)',
+      core: 'Child\'s pose (30s) > Spinal twist (30s/side) > Deep breathing (30s)',
+    };
+    return {
+      warmup: warmups[type] || warmups.full_body,
+      cooldown: cooldowns[type] || cooldowns.full_body,
+    };
+  }
+
+  private generateTrackerUrl(suggestion: any, personalRecords: Record<string, PersonalRecord>): string {
+    const payload = {
+      t: this.formatWorkoutType(suggestion.type),
+      d: suggestion.duration,
+      i: suggestion.intensity,
+      ex: suggestion.exercises.map((ex: any) => {
+        const pr = personalRecords[ex.name];
+        const entry: any = { n: ex.name, s: ex.sets, r: ex.reps };
+        if (ex.duration) entry.dur = ex.duration;
+        if (pr?.weight) {
+          entry.pw = pr.weight;
+          entry.tw = pr.weight <= 10 ? pr.weight + 2.5 : Math.round(pr.weight * 1.05);
+        }
+        return entry;
+      }),
+    };
+    const encoded = btoa(JSON.stringify(payload));
+    return `${TRACKER_BASE_URL}#${encoded}`;
+  }
+
+  private formatWorkoutDescription(
+    suggestion: any,
+    personalRecords?: Record<string, PersonalRecord>,
+    trackerUrl?: string
+  ): string {
+    const { warmup, cooldown } = this.getWarmupCooldown(suggestion.type);
+    let desc = '';
+
+    if (trackerUrl) {
+      desc += `Track this workout on your phone:\n${trackerUrl}\n\n`;
+    }
+
+    desc += `${this.formatWorkoutType(suggestion.type)} | ${suggestion.intensity} intensity\n`;
+    desc += `Target: ${suggestion.targetMuscleGroups.join(', ')}\n`;
+    desc += `\n--- WARM-UP (3 min) ---\n${warmup}\n`;
+    desc += `\n--- WORKOUT ---\n`;
+
+    for (const exercise of suggestion.exercises) {
+      if (exercise.duration) {
+        desc += `\n${exercise.name}: ${exercise.sets} sets, ${exercise.duration}s`;
+      } else {
+        desc += `\n${exercise.name}: ${exercise.sets} sets x ${exercise.reps} reps`;
+      }
+      if (personalRecords?.[exercise.name]?.weight) {
+        const pr = personalRecords[exercise.name];
+        const nextWeight = pr.weight <= 10 ? pr.weight + 2.5 : Math.round(pr.weight * 1.05);
+        desc += `\n  Previous best: ${pr.sets}x${pr.reps} @ ${pr.weight}lb — Try ${nextWeight}lb`;
+      }
+    }
+
+    desc += `\n\n--- COOL-DOWN (3 min) ---\n${cooldown}\n`;
+
+    return desc;
   }
 
   private async handleMessage(message: any, sender: any, sendResponse: any) {
@@ -254,6 +339,14 @@ class BackgroundService {
           chrome.alarms.clear(`workout_notify_${message.workoutId}`);
           await this.storageManager.markWorkoutComplete(message.workoutId);
           await this.storageManager.updateStreakOnComplete();
+          // Auto-update personal records for each exercise in the completed workout
+          const histForPR = await this.storageManager.getWorkoutHistory();
+          const doneWorkout = histForPR.find(w => w.id === message.workoutId);
+          if (doneWorkout) {
+            for (const ex of doneWorkout.exercises) {
+              await this.storageManager.updatePersonalRecord(ex.name, ex.sets, ex.reps, ex.weight ?? 0);
+            }
+          }
           const unlocked = await this.storageManager.checkAndUnlockBadges();
           sendResponse({ success: true, data: { newlyUnlocked: unlocked } });
           break;
@@ -263,6 +356,14 @@ class BackgroundService {
           chrome.alarms.clear(`workout_notify_${message.workoutId}`);
           await this.storageManager.markWorkoutComplete(message.workoutId, message.rating, message.postNotes);
           await this.storageManager.updateStreakOnComplete();
+          // Auto-update personal records for each exercise in the rated workout
+          const histForRatePR = await this.storageManager.getWorkoutHistory();
+          const ratedWorkout = histForRatePR.find(w => w.id === message.workoutId);
+          if (ratedWorkout) {
+            for (const ex of ratedWorkout.exercises) {
+              await this.storageManager.updatePersonalRecord(ex.name, ex.sets, ex.reps, ex.weight ?? 0);
+            }
+          }
           const newlyUnlocked = await this.storageManager.checkAndUnlockBadges();
           sendResponse({ success: true, data: { newlyUnlocked } });
           break;
@@ -342,14 +443,19 @@ class BackgroundService {
           );
           const rStart = new Date(message.newStartTime);
           const rEnd = new Date(message.newEndTime);
+          const rPRs = await this.storageManager.getPersonalRecords();
+          const rTrackerUrl = this.generateTrackerUrl(rSuggestion, rPRs);
+          const rEstCal = rSuggestion.duration * (rSuggestion.intensity === 'high' ? 8 : rSuggestion.intensity === 'medium' ? 6 : 4);
+          const rColorId = this.getWorkoutColor(rSuggestion.type);
           const rId = await (this.calendarService as any).addWorkoutEvent(
-            `Workout: ${this.formatWorkoutType(rSuggestion.type)}`,
-            this.formatWorkoutDescription(rSuggestion),
+            `${this.formatWorkoutType(rSuggestion.type)} | ${rSuggestion.duration}min | ~${rEstCal} cal`,
+            this.formatWorkoutDescription(rSuggestion, rPRs, rTrackerUrl),
             rStart,
             rEnd,
             undefined,
             prefs?.targetCalendarId,
-            rLeadMinutes
+            rLeadMinutes,
+            rColorId
           );
           await this.storageManager.addWorkoutToHistory({
             id: rId,
@@ -384,6 +490,12 @@ class BackgroundService {
 
         case 'ADD_CUSTOM_EXERCISE': {
           await this.storageManager.addCustomExercise(message.exercise as CustomExercise);
+          sendResponse({ success: true });
+          break;
+        }
+
+        case 'DELETE_CUSTOM_EXERCISE': {
+          await this.storageManager.deleteCustomExercise(message.name);
           sendResponse({ success: true });
           break;
         }

@@ -1,4 +1,4 @@
-import { WorkoutSuggestion, WorkoutType, Exercise, FitnessGoal, WorkoutHistory } from '../types';
+import { WorkoutSuggestion, WorkoutType, Exercise, FitnessGoal, WorkoutHistory, CustomExercise } from '../types';
 import { StorageManager } from '../utils/storage';
 
 export class WorkoutEngine {
@@ -24,12 +24,13 @@ export class WorkoutEngine {
   ): Promise<WorkoutSuggestion> {
     const history = await this.storageManager.getWorkoutHistory();
     const lastWorkout = history[0]; // Most recent workout
-    
+    const customExercises = await this.storageManager.getCustomExercises();
+
     // Determine workout type based on history and goals
     const workoutType = this.determineWorkoutType(lastWorkout, goal);
-    
+
     // Get exercises based on type, goal, and equipment
-    const exercises = this.getExercises(workoutType, goal, equipment, restrictions, duration);
+    const exercises = this.getExercises(workoutType, goal, equipment, restrictions, duration, customExercises);
     
     // Determine intensity based on goal and history (including ratings)
     const intensity = this.determineIntensity(goal, lastWorkout, history);
@@ -80,7 +81,8 @@ export class WorkoutEngine {
     goal: FitnessGoal,
     equipment: string[],
     restrictions: string[],
-    duration: number
+    duration: number,
+    customExercises: CustomExercise[] = []
   ): Exercise[] {
     const exerciseLibrary = this.getExerciseLibrary();
     let exercises: Exercise[] = [];
@@ -137,6 +139,22 @@ export class WorkoutEngine {
         break;
     }
     
+    // Merge in custom exercises for this workout type
+    const customForType = customExercises.filter(ex => {
+      if (type === 'full_body') {
+        return ex.category === 'upper_body_strength' || ex.category === 'lower_body_strength' || ex.category === 'full_body';
+      }
+      return ex.category === type;
+    }).map(ex => ({
+      name: ex.name,
+      sets: ex.sets,
+      reps: ex.reps,
+      notes: ex.equipment?.length ? `equipment: ${ex.equipment[0]}` : 'equipment: none',
+      muscleGroup: ex.muscleGroup,
+    }));
+    const filteredCustom = this.filterExercises(customForType, equipment, restrictions);
+    exercises = [...exercises, ...filteredCustom];
+
     // Adjust exercises based on goal
     exercises = this.adjustForGoal(exercises, goal);
     

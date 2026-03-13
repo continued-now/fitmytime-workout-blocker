@@ -120,9 +120,11 @@ export class StorageManager {
 
   async updateStreakOnComplete(): Promise<{ currentStreak: number; longestStreak: number }> {
     const data = await this.getData();
-    const today = new Date().toISOString().split('T')[0];
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const localDateStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const today = localDateStr(new Date());
     const last = data.lastWorkoutDate;
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const yesterday = localDateStr(new Date(Date.now() - 86400000));
 
     let current = data.currentStreak ?? 0;
     if (last === today) {
@@ -223,5 +225,10 @@ export class StorageManager {
   async addCustomExercise(exercise: CustomExercise): Promise<void> {
     const current = await this.getCustomExercises();
     await this.setData({ customExercises: [...current, exercise] });
+  }
+
+  async deleteCustomExercise(name: string): Promise<void> {
+    const current = await this.getCustomExercises();
+    await this.setData({ customExercises: current.filter(ex => ex.name !== name) });
   }
 }

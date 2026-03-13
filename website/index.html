@@ -1325,6 +1325,248 @@
       outline-offset: 2px;
     }
 
+    /* ===== DEMO SECTION ===== */
+    .demo { padding: 120px 32px; background: var(--white); }
+    .demo-inner { max-width: 1100px; margin: 0 auto; }
+    .demo-browser {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      margin-top: 48px;
+    }
+    .demo-browser-bar {
+      height: 44px;
+      background: #F3F4F6;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+    }
+    .demo-browser-dots { display: flex; gap: 7px; }
+    .demo-browser-dots span {
+      display: block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #FF5F57; }
+    .dot-yellow { background: #FEBC2E; }
+    .dot-green { background: #28C840; }
+    .demo-browser-url {
+      font-size: 13px;
+      color: var(--text-faint);
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 16px;
+      flex: 1;
+      max-width: 360px;
+      text-align: center;
+      margin: 0 auto;
+    }
+    .demo-browser-body {
+      position: relative;
+      padding: 20px;
+      background: white;
+      min-height: 240px;
+    }
+    .demo-cal {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      height: 200px;
+    }
+    .demo-cal-day {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .demo-cal-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-align: center;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .demo-cal-block {
+      border-radius: 6px;
+      padding: 5px 6px;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-soft);
+      background: #F3F4F6;
+      line-height: 1.3;
+    }
+    .demo-cal-block.gap {
+      background: var(--blue-light);
+      color: var(--blue);
+      border: 1.5px dashed var(--blue);
+    }
+    .demo-cal-block.workout {
+      background: var(--blue);
+      color: white;
+      border: none;
+    }
+    .demo-popup {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 200px;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      padding: 14px;
+      font-family: var(--font-body);
+    }
+    .demo-popup-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .demo-popup-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: var(--font-display);
+      flex-shrink: 0;
+    }
+    .demo-popup-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .demo-popup-badge {
+      display: inline-block;
+      background: var(--green-light);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 20px;
+      padding: 2px 8px;
+      margin-bottom: 8px;
+    }
+    .demo-popup-workout {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .demo-popup-meta {
+      font-size: 10px;
+      color: var(--text-soft);
+      margin-bottom: 10px;
+    }
+    .demo-popup-btn {
+      width: 100%;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 0;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      cursor: default;
+    }
+    .demo-steps {
+      display: flex;
+      gap: 32px;
+      margin-top: 40px;
+      justify-content: center;
+    }
+    .demo-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      max-width: 280px;
+      text-align: center;
+    }
+    .demo-step-num {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .demo-step p {
+      font-size: 14px;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    /* ===== EMAIL CAPTURE ===== */
+    .cta-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px auto 24px;
+      max-width: 320px;
+      color: var(--text-faint);
+      font-size: 13px;
+    }
+    .cta-divider::before,
+    .cta-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.2);
+    }
+    .cta-email-wrap { text-align: center; }
+    .cta-email-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 12px;
+    }
+    .email-form {
+      display: flex;
+      gap: 8px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .email-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .email-input:focus { border-color: var(--blue); }
+    .email-input::placeholder { color: var(--text-faint); }
+    .email-success {
+      font-size: 14px;
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
+      margin-top: 12px;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 960px) {
       .hero-inner { grid-template-columns: 1fr; text-align: center; }
@@ -1378,11 +1620,21 @@
       .step-item p { font-size: 14px; }
       /* CTA section */
       .cta-inner .btn { width: 100%; justify-content: center; }
+      /* Demo section */
+      .demo { padding: 72px 20px; }
+      .demo-steps { flex-direction: column; align-items: center; }
+      .demo-cal-label { font-size: 10px; }
+      .demo-cal-block { font-size: 9px; padding: 4px; }
+      .demo-popup { display: none; }
+      /* Email form */
+      .email-form { flex-direction: column; }
+      .email-submit-btn { width: 100%; justify-content: center; }
     }
 
     @media (max-width: 400px) {
       .hero { padding: 108px 16px 64px; }
       .features, .how, .testimonials, .cta, .faq, .comparison { padding: 56px 16px; }
+      .demo { padding: 56px 16px; }
       .stats { padding: 48px 16px; }
       .nav-inner { padding: 0 16px; }
       .mobile-menu ul { padding: 12px 16px 20px; }
@@ -1635,6 +1887,90 @@
     </div>
   </section>
 
+  <!-- DEMO SECTION -->
+  <section class="demo" id="demo">
+    <div class="demo-inner">
+      <div class="section-header section-header-center reveal">
+        <div class="section-eyebrow">See It In Action</div>
+        <h2 class="section-title">From calendar gaps to workouts — instantly</h2>
+        <p class="section-desc">FitMyTime scans your next 7 days, finds your free slots, and schedules a workout that actually fits.</p>
+      </div>
+      <div class="demo-browser reveal reveal-d1">
+        <div class="demo-browser-bar">
+          <div class="demo-browser-dots">
+            <span class="dot-red"></span>
+            <span class="dot-yellow"></span>
+            <span class="dot-green"></span>
+          </div>
+          <div class="demo-browser-url">calendar.google.com</div>
+        </div>
+        <div class="demo-browser-body">
+          <div class="demo-cal">
+            <!-- Monday -->
+            <div class="demo-cal-day">
+              <div class="demo-cal-label">Mon</div>
+              <div class="demo-cal-block" style="height:40px">9:00 Standup</div>
+              <div class="demo-cal-block" style="height:56px">10:30 Design Review</div>
+              <div class="demo-cal-block" style="height:32px">2:00 1:1</div>
+            </div>
+            <!-- Tuesday -->
+            <div class="demo-cal-day">
+              <div class="demo-cal-label">Tue</div>
+              <div class="demo-cal-block" style="height:48px">9:30 Sprint Planning</div>
+              <div class="demo-cal-block" style="height:36px">1:00 Lunch call</div>
+              <div class="demo-cal-block" style="height:44px">3:30 Client sync</div>
+            </div>
+            <!-- Wednesday — gap + workout -->
+            <div class="demo-cal-day">
+              <div class="demo-cal-label">Wed</div>
+              <div class="demo-cal-block" style="height:40px">9:00 Standup</div>
+              <div class="demo-cal-block gap" style="height:50px">12:00–12:45<br>Free slot ✓</div>
+              <div class="demo-cal-block workout" style="height:50px">12:00 Workout<br>Upper Body</div>
+            </div>
+            <!-- Thursday -->
+            <div class="demo-cal-day">
+              <div class="demo-cal-label">Thu</div>
+              <div class="demo-cal-block" style="height:52px">10:00 All Hands</div>
+              <div class="demo-cal-block" style="height:36px">2:00 Code review</div>
+            </div>
+            <!-- Friday -->
+            <div class="demo-cal-day">
+              <div class="demo-cal-label">Fri</div>
+              <div class="demo-cal-block" style="height:40px">9:30 Retro</div>
+              <div class="demo-cal-block" style="height:44px">11:00 Demo day</div>
+              <div class="demo-cal-block" style="height:32px">3:00 Wrap-up</div>
+            </div>
+          </div>
+          <!-- FitMyTime popup overlay -->
+          <div class="demo-popup">
+            <div class="demo-popup-header">
+              <div class="demo-popup-icon">F</div>
+              <div class="demo-popup-title">FitMyTime</div>
+            </div>
+            <div class="demo-popup-badge">Gap found — Wed 12:00</div>
+            <div class="demo-popup-workout">Upper Body Blast</div>
+            <div class="demo-popup-meta">40 min &middot; Dumbbells &middot; Strength</div>
+            <div class="demo-popup-btn">Add to Calendar</div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-steps reveal reveal-d2">
+        <div class="demo-step">
+          <span class="demo-step-num">1</span>
+          <p>Scans your calendar for free 20–60 min gaps</p>
+        </div>
+        <div class="demo-step">
+          <span class="demo-step-num">2</span>
+          <p>Picks a workout matched to your goals &amp; equipment</p>
+        </div>
+        <div class="demo-step">
+          <span class="demo-step-num">3</span>
+          <p>Adds it straight to your calendar — one click</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- #3 BEFORE/AFTER COMPARISON -->
   <section class="comparison" id="comparison">
     <div class="comparison-inner">
@@ -1838,6 +2174,16 @@
         Add to Chrome &mdash; It's Free
       </a>
       <p class="cta-note">Works on Chrome, Brave, and Edge. Requires Google Calendar.</p>
+      <div class="cta-divider" aria-hidden="true"><span>or</span></div>
+      <div class="cta-email-wrap">
+        <p class="cta-email-label">Get notified of updates &amp; new features</p>
+        <!-- Replace action="#" with your Formspree/Mailchimp URL to capture emails -->
+        <form class="email-form" id="emailForm" action="#" novalidate>
+          <input class="email-input" type="email" placeholder="your@email.com" aria-label="Email address" required>
+          <button type="submit" class="btn btn-ghost email-submit-btn">Notify Me</button>
+        </form>
+        <p class="email-success" id="emailSuccess" hidden>You're on the list — we'll be in touch.</p>
+      </div>
     </div>
   </section>
 
@@ -2085,6 +2431,17 @@
     backToTop.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // ===== Email capture form =====
+    const emailForm = document.getElementById('emailForm');
+    const emailSuccess = document.getElementById('emailSuccess');
+    if (emailForm) {
+      emailForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        emailForm.style.display = 'none';
+        emailSuccess.hidden = false;
+      });
+    }
 
     // ===== #15 CTA button ripple effect =====
     document.querySelectorAll('.btn-primary').forEach(btn => {
