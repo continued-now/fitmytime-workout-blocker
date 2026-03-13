@@ -1517,6 +1517,52 @@
       line-height: 1.5;
     }
 
+    /* ===== DEMO MODE SELECTOR ===== */
+    .demo-modes {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .demo-mode-pill {
+      padding: 10px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      background: white;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .demo-mode-pill:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-light);
+    }
+    .demo-mode-pill.active {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: white;
+    }
+    .demo-mode-pill .pill-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+    .demo-mode-desc {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-faint);
+      margin-top: 12px;
+      min-height: 20px;
+      transition: opacity 0.2s;
+    }
+
     /* ===== EMAIL CAPTURE ===== */
     .cta-divider {
       display: flex;
@@ -1587,6 +1633,8 @@
       .stats-inner { grid-template-columns: repeat(2, 1fr); }
       .comparison-grid { grid-template-columns: 1fr; gap: 16px; }
       .comparison-divider { padding: 8px 0; }
+      .p-result-body { grid-template-columns: 1fr; }
+      .p-result-name { grid-column: span 1; }
       /* #4 Show hamburger, hide nav links */
       .nav-links { display: none; }
       .hamburger { display: flex; }
@@ -1619,6 +1667,10 @@
       /* Section header spacing */
       .section-header { margin-bottom: 36px; }
       .section-header-center .section-desc { font-size: 15px; }
+      .personalize { padding: 72px 20px; }
+      .p-selectors { padding: 24px; }
+      .p-result-top { flex-direction: column; }
+      .p-result-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
       /* FAQ touch-friendly */
       .faq-question { padding: 16px 20px; font-size: 15px; }
       .faq-answer-text { padding: 0 20px 16px; font-size: 14px; }
@@ -1629,6 +1681,8 @@
       .cta-inner .btn { width: 100%; justify-content: center; }
       /* Demo section */
       .demo { padding: 72px 20px; }
+      .demo-modes { gap: 6px; }
+      .demo-mode-pill { font-size: 13px; padding: 8px 14px; }
       .demo-steps { flex-direction: column; align-items: center; }
       .demo-cal-label { font-size: 10px; }
       .demo-cal-block { font-size: 9px; padding: 4px; }
@@ -1950,6 +2004,178 @@
       color: white;
     }
 
+    /* ===== PERSONALIZE SECTION ===== */
+    .personalize {
+      padding: 120px 32px;
+      background: var(--cream);
+      position: relative;
+    }
+    .personalize::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .personalize-inner {
+      max-width: 940px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .p-selectors {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    }
+    .p-step { margin-bottom: 28px; }
+    .p-step:last-child { margin-bottom: 0; }
+    .p-step-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+    .p-slots { display: flex; gap: 10px; flex-wrap: wrap; }
+    .p-slot {
+      flex: 1;
+      min-width: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 14px 10px;
+      background: var(--cream);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      user-select: none;
+    }
+    .p-slot:hover { border-color: var(--blue); background: var(--blue-light); }
+    .p-slot.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+      transform: translateY(-2px);
+    }
+    .p-slot-icon { font-size: 20px; line-height: 1; }
+    .p-slot-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; }
+    .p-slot.active .p-slot-name { color: white; }
+    .p-slot-time { font-size: 10.5px; color: var(--text-faint); white-space: nowrap; }
+    .p-slot.active .p-slot-time { color: rgba(255,255,255,0.7); }
+    .p-goals { display: flex; gap: 8px; flex-wrap: wrap; }
+    .p-goal {
+      padding: 9px 20px;
+      background: var(--cream);
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .p-goal:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+    .p-goal.active { background: var(--blue); border-color: var(--blue); color: white; }
+    .p-result { transition: opacity 0.25s ease; }
+    .p-result.p-updating { opacity: 0; }
+    .p-result-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .p-result-top {
+      padding: 22px 28px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .p-result-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .p-intensity { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .p-int-high   { background: #FEF2F2; color: #B91C1C; }
+    .p-int-medium { background: #FFFBEB; color: #92400E; }
+    .p-int-low    { background: #ECFDF5; color: #047857; }
+    .p-dur-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+      background: #EFF6FF; color: #2563EB;
+    }
+    .p-result-ctx { font-size: 12px; color: var(--text-faint); font-weight: 500; }
+    .p-result-body {
+      padding: 16px 28px 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .p-result-name {
+      font-family: 'Bricolage Grotesque', Georgia, serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #1A1F36;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      grid-column: span 2;
+    }
+    .p-result-note {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-style: italic;
+      font-size: 14.5px;
+      color: #6B7280;
+      line-height: 1.7;
+      border-left: 3px solid #2563EB;
+      padding-left: 14px;
+    }
+    .p-exercises-list { display: flex; flex-direction: column; }
+    .p-exercise {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #F0F0EE;
+      gap: 12px;
+    }
+    .p-exercise:last-child { border-bottom: none; }
+    .p-ex-name { font-size: 13px; font-weight: 600; color: #3D4663; }
+    .p-ex-detail { font-size: 12px; color: #9CA3AF; white-space: nowrap; }
+    .p-result-footer {
+      background: #2563EB;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .p-cal-preview {
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .p-footer-cta {
+      font-size: 12px; font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .p-footer-cta:hover { color: white; }
+
     /* #9 Prefers-reduced-motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -2233,6 +2459,60 @@
     </div>
   </section>
 
+  <!-- PERSONALIZE -->
+  <section class="personalize" id="personalize">
+    <div class="personalize-inner">
+      <div class="section-header section-header-center reveal">
+        <div class="section-eyebrow">Built Around You</div>
+        <h2 class="section-title">Your schedule, your goal &mdash;<br>your workout</h2>
+        <p class="section-desc">Pick when you like to train and what you&rsquo;re working toward. See exactly what FitMyTime would schedule for you.</p>
+      </div>
+      <div class="p-selectors reveal reveal-d1">
+        <div class="p-step">
+          <div class="p-step-label">When do you prefer to train?</div>
+          <div class="p-slots" id="pSlots">
+            <button class="p-slot active" data-slot="before">
+              <span class="p-slot-icon">&#127774;</span>
+              <span class="p-slot-name">Before Work</span>
+              <span class="p-slot-time">6&#8211;8 AM &middot; 25&#8211;40 min</span>
+            </button>
+            <button class="p-slot" data-slot="lunch">
+              <span class="p-slot-icon">&#9728;&#65039;</span>
+              <span class="p-slot-name">Lunch Hour</span>
+              <span class="p-slot-time">12&#8211;1 PM &middot; 20&#8211;30 min</span>
+            </button>
+            <button class="p-slot" data-slot="after">
+              <span class="p-slot-icon">&#127751;</span>
+              <span class="p-slot-name">After Work</span>
+              <span class="p-slot-time">5&#8211;7 PM &middot; 40&#8211;55 min</span>
+            </button>
+            <button class="p-slot" data-slot="evening">
+              <span class="p-slot-icon">&#127769;</span>
+              <span class="p-slot-name">Evening</span>
+              <span class="p-slot-time">7&#8211;9 PM &middot; 30&#8211;40 min</span>
+            </button>
+            <button class="p-slot" data-slot="weekend">
+              <span class="p-slot-icon">&#127774;&#127774;</span>
+              <span class="p-slot-name">Weekend</span>
+              <span class="p-slot-time">Flexible &middot; 45&#8211;60 min</span>
+            </button>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-step-label">What&rsquo;s your goal?</div>
+          <div class="p-goals" id="pGoals">
+            <button class="p-goal active" data-goal="muscle">Build Muscle</button>
+            <button class="p-goal" data-goal="lose">Lose Weight</button>
+            <button class="p-goal" data-goal="cardio">Improve Cardio</button>
+            <button class="p-goal" data-goal="active">Stay Active</button>
+            <button class="p-goal" data-goal="flex">Flexibility</button>
+          </div>
+        </div>
+      </div>
+      <div class="p-result reveal reveal-d2" id="pResult"></div>
+    </div>
+  </section>
+
   <!-- DEMO SECTION -->
   <section class="demo" id="demo">
     <div class="demo-inner">
@@ -2241,6 +2521,23 @@
         <h2 class="section-title">From calendar gaps to workouts — instantly</h2>
         <p class="section-desc">FitMyTime scans your next 7 days, finds your free slots, and schedules a workout that actually fits.</p>
       </div>
+      <!-- Schedule mode selector -->
+      <div class="demo-modes reveal" id="demoModes">
+        <button class="demo-mode-pill active" data-mode="lunchtime">
+          <span class="pill-icon">&#9728;</span> Lunchtime
+        </button>
+        <button class="demo-mode-pill" data-mode="before">
+          <span class="pill-icon">&#9788;</span> Before Work
+        </button>
+        <button class="demo-mode-pill" data-mode="after">
+          <span class="pill-icon">&#9790;</span> After Work
+        </button>
+        <button class="demo-mode-pill" data-mode="wfh">
+          <span class="pill-icon">&#8962;</span> Working From Home
+        </button>
+      </div>
+      <p class="demo-mode-desc" id="demoModeDesc">Finds a free slot during your lunch break (default 8 AM–6 PM working hours)</p>
+
       <div class="demo-browser reveal reveal-d1">
         <div class="demo-browser-bar">
           <div class="demo-browser-dots">
@@ -2250,54 +2547,8 @@
           </div>
           <div class="demo-browser-url">calendar.google.com</div>
         </div>
-        <div class="demo-browser-body">
-          <div class="demo-cal">
-            <!-- Monday -->
-            <div class="demo-cal-day">
-              <div class="demo-cal-label">Mon</div>
-              <div class="demo-cal-block" style="height:40px">9:00 Standup</div>
-              <div class="demo-cal-block" style="height:56px">10:30 Design Review</div>
-              <div class="demo-cal-block" style="height:32px">2:00 1:1</div>
-            </div>
-            <!-- Tuesday -->
-            <div class="demo-cal-day">
-              <div class="demo-cal-label">Tue</div>
-              <div class="demo-cal-block" style="height:48px">9:30 Sprint Planning</div>
-              <div class="demo-cal-block" style="height:36px">1:00 Lunch call</div>
-              <div class="demo-cal-block" style="height:44px">3:30 Client sync</div>
-            </div>
-            <!-- Wednesday — gap + workout -->
-            <div class="demo-cal-day">
-              <div class="demo-cal-label">Wed</div>
-              <div class="demo-cal-block" style="height:40px">9:00 Standup</div>
-              <div class="demo-cal-block gap" style="height:50px">12:00–12:45<br>Free slot ✓</div>
-              <div class="demo-cal-block workout" style="height:50px">12:00 Workout<br>Upper Body</div>
-            </div>
-            <!-- Thursday -->
-            <div class="demo-cal-day">
-              <div class="demo-cal-label">Thu</div>
-              <div class="demo-cal-block" style="height:52px">10:00 All Hands</div>
-              <div class="demo-cal-block" style="height:36px">2:00 Code review</div>
-            </div>
-            <!-- Friday -->
-            <div class="demo-cal-day">
-              <div class="demo-cal-label">Fri</div>
-              <div class="demo-cal-block" style="height:40px">9:30 Retro</div>
-              <div class="demo-cal-block" style="height:44px">11:00 Demo day</div>
-              <div class="demo-cal-block" style="height:32px">3:00 Wrap-up</div>
-            </div>
-          </div>
-          <!-- FitMyTime popup overlay -->
-          <div class="demo-popup">
-            <div class="demo-popup-header">
-              <div class="demo-popup-icon">F</div>
-              <div class="demo-popup-title">FitMyTime</div>
-            </div>
-            <div class="demo-popup-badge">Gap found — Wed 12:00</div>
-            <div class="demo-popup-workout">Upper Body Blast</div>
-            <div class="demo-popup-meta">40 min &middot; Dumbbells &middot; Strength</div>
-            <div class="demo-popup-btn">Add to Calendar</div>
-          </div>
+        <div class="demo-browser-body" id="demoBrowserBody">
+          <!-- Calendar + popup rendered by JS -->
         </div>
       </div>
       <div class="demo-steps reveal reveal-d2">
@@ -2616,6 +2867,105 @@
       });
     });
 
+    // ===== Personalize section =====
+    const pWorkouts = {
+      before: {
+        muscle: { name: 'Morning Upper Body Blast', dur: '35 min', int: 'Medium', intClass: 'p-int-medium', note: 'Short, focused sets before your brain fully wakes up. Upper body is ideal \u2014 no heavy leg fatigue to carry through your workday.', ex: [['Push-Up Variations','3 \u00d7 12 reps'],['Dumbbell Row','3 \u00d7 10 each'],['Shoulder Press','3 \u00d7 10 reps'],['Bicep Curl','2 \u00d7 12 reps']], days: 'Mon, Wed, Fri', time: '6:30 AM' },
+        lose:   { name: 'Morning HIIT Burn', dur: '25 min', int: 'High', intClass: 'p-int-high', note: 'Morning cardio burns calories and spikes metabolism for the entire day. Short, sharp, and done before breakfast.', ex: [['Jumping Jacks','3 \u00d7 45 sec'],['Burpees','3 \u00d7 30 sec'],['High Knees','3 \u00d7 40 sec'],['Mountain Climbers','3 \u00d7 30 sec']], days: 'Mon, Wed, Fri', time: '6:30 AM' },
+        cardio: { name: 'Wake-Up Run Circuit', dur: '30 min', int: 'Medium', intClass: 'p-int-medium', note: 'A brisk morning run sets your pace for the day. Improves focus and energy levels for hours after you finish.', ex: [['Warm-Up Walk/Jog','5 min'],['Tempo Run','15 min'],['Interval Sprints','4 \u00d7 30 sec on/off'],['Cool Down Walk','5 min']], days: 'Tue, Thu, Sat', time: '6:45 AM' },
+        active: { name: 'Morning Mobility Flow', dur: '25 min', int: 'Low', intClass: 'p-int-low', note: 'Gentle movement to wake the body without exhausting it. Perfect for staying consistent without burning out.', ex: [['Dynamic Stretching','5 min'],['Hip Circles','2 \u00d7 10 each'],['Cat-Cow Flow','2 \u00d7 10 reps'],['Bodyweight Squats','2 \u00d7 15 reps']], days: 'Mon\u2013Fri', time: '6:30 AM' },
+        flex:   { name: 'Morning Yoga Flow', dur: '30 min', int: 'Low', intClass: 'p-int-low', note: 'Morning flexibility work sets you up with better posture and less tension through the whole workday.', ex: [['Sun Salutation A','3 rounds'],['Warrior Sequence','2 \u00d7 30 sec each'],['Seated Forward Fold','2 \u00d7 45 sec'],['Pigeon Pose','60 sec each']], days: 'Mon, Wed, Fri', time: '6:30 AM' },
+      },
+      lunch: {
+        muscle: { name: 'Quick Core & Arms', dur: '25 min', int: 'Medium', intClass: 'p-int-medium', note: "Core and arms don't require a long warmup and won't leave you sweaty for afternoon meetings. Targeted and efficient.", ex: [['Plank Variations','3 \u00d7 45 sec'],['Dumbbell Curls','3 \u00d7 12 reps'],['Tricep Dips','3 \u00d7 10 reps'],['Russian Twists','3 \u00d7 20 reps']], days: 'Mon, Wed, Fri', time: '12:15 PM' },
+        lose:   { name: 'Lunch Tabata Blitz', dur: '20 min', int: 'High', intClass: 'p-int-high', note: '20 minutes of Tabata burns as many calories as 40 minutes of steady cardio. Maximally efficient for a tight window.', ex: [['Squat Jumps','4 \u00d7 20 sec on/10 off'],['Push-Up Tabata','4 \u00d7 20 sec on/10 off'],['Lunge Jumps','4 \u00d7 20 sec on/10 off'],['Plank Jacks','4 \u00d7 20 sec on/10 off']], days: 'Tue, Thu', time: '12:00 PM' },
+        cardio: { name: 'Power Walk + Core', dur: '25 min', int: 'Low', intClass: 'p-int-low', note: 'A brisk walk plus core circuit boosts afternoon energy without leaving you exhausted for the rest of the day.', ex: [['Brisk Walk','15 min'],['Dead Bugs','2 \u00d7 10 each'],['Bicycle Crunches','3 \u00d7 20 reps'],['Cool Down Stretch','3 min']], days: 'Mon\u2013Fri', time: '12:00 PM' },
+        active: { name: 'Desk Stretch & Reset', dur: '20 min', int: 'Low', intClass: 'p-int-low', note: 'Counteracts hours of sitting. Reduces back pain, improves posture, and re-energises you for the afternoon.', ex: [['Chest Opener Stretch','2 \u00d7 30 sec'],['Hip Flexor Lunge','2 \u00d7 30 sec each'],['Shoulder Rolls','2 \u00d7 10 each'],['Standing Calf Raises','3 \u00d7 15 reps']], days: 'Mon\u2013Fri', time: '12:30 PM' },
+        flex:   { name: 'Midday Stretch Break', dur: '20 min', int: 'Low', intClass: 'p-int-low', note: 'Midday flexibility work relieves tension, resets posture, and improves afternoon focus considerably.', ex: [['Neck & Shoulder Release','3 min'],['Standing Hamstring Stretch','2 \u00d7 45 sec'],['Spinal Twist','2 \u00d7 30 sec each'],['Figure-4 Hip Stretch','2 \u00d7 45 sec each']], days: 'Tue, Thu', time: '12:00 PM' },
+      },
+      after: {
+        muscle: { name: 'Full Body Strength', dur: '50 min', int: 'High', intClass: 'p-int-high', note: 'After work your body is fully awake, muscles are warmed from the day, and strength peaks in late afternoon \u2014 ideal for heavy lifting.', ex: [['Goblet Squat','4 \u00d7 8 reps'],['Dumbbell Bench Press','4 \u00d7 8 reps'],['Romanian Deadlift','3 \u00d7 10 reps'],['Pull-Ups / Lat Pulldown','3 \u00d7 8 reps']], days: 'Mon, Wed, Fri', time: '5:30 PM' },
+        lose:   { name: 'HIIT + Strength Circuit', dur: '45 min', int: 'High', intClass: 'p-int-high', note: 'Combines resistance training with cardio bursts for maximum calorie burn. The afterburn effect lasts 24\u201336 hours.', ex: [['Kettlebell Swings','4 \u00d7 15 reps'],['Box Jumps','3 \u00d7 12 reps'],['Dumbbell Complex','3 \u00d7 10 reps'],['Battle Rope / Rowing','3 \u00d7 30 sec']], days: 'Mon, Wed, Fri', time: '5:30 PM' },
+        cardio: { name: 'Tempo Run or Cycle', dur: '45 min', int: 'Medium', intClass: 'p-int-medium', note: 'Late afternoon is when lung capacity and body temperature peak \u2014 making this the best window for cardio performance.', ex: [['Warm-Up Jog','8 min'],['Tempo Intervals','5 \u00d7 3 min hard / 2 easy'],['Steady State','15 min'],['Cool Down','5 min']], days: 'Tue, Thu', time: '5:30 PM' },
+        active: { name: 'Evening Walk & Yoga', dur: '40 min', int: 'Low', intClass: 'p-int-low', note: 'Decompresses from the workday while keeping you active. Walking after work significantly improves sleep quality.', ex: [['Brisk Walk','25 min'],['Sun Salutations','3 rounds'],["Child's Pose & Hip Opener",'2 \u00d7 45 sec each'],['Legs-Up-the-Wall','2 min']], days: 'Mon\u2013Fri', time: '6:00 PM' },
+        flex:   { name: 'Full Flexibility Session', dur: '45 min', int: 'Low', intClass: 'p-int-low', note: 'Evening is when muscles are most pliable from a full day of movement. Deeper stretches are more achievable.', ex: [['Dynamic Warm-Up','8 min'],['Split Progression','3 \u00d7 60 sec each'],['Deep Hip Flexor Work','3 \u00d7 60 sec each'],['Foam Roll & Release','10 min']], days: 'Mon, Wed, Fri', time: '6:00 PM' },
+      },
+      evening: {
+        muscle: { name: 'Lower Body Power', dur: '35 min', int: 'Medium', intClass: 'p-int-medium', note: "Evening lower body training doesn't disrupt sleep the way intense upper-body work can. Squats also promote sleep-aiding growth hormone.", ex: [['Bulgarian Split Squat','3 \u00d7 10 each'],['Glute Bridges','3 \u00d7 15 reps'],['Lateral Band Walks','3 \u00d7 12 each'],['Standing Calf Raises','3 \u00d7 20 reps']], days: 'Mon, Thu', time: '7:15 PM' },
+        lose:   { name: 'Low-Impact Cardio Burn', dur: '30 min', int: 'Low', intClass: 'p-int-low', note: 'Low-impact avoids raising cortisol before bed while still burning calories. Steady-state keeps metabolism active overnight.', ex: [['Stationary Bike / Elliptical','20 min'],['Step-Ups','3 \u00d7 15 each'],['Standing Oblique Crunch','3 \u00d7 15 each'],['Seated Stretch','3 min']], days: 'Tue, Thu', time: '7:30 PM' },
+        cardio: { name: 'Zone-2 Steady Run', dur: '35 min', int: 'Low', intClass: 'p-int-low', note: 'Moderate evening cardio improves cardiovascular fitness without disrupting sleep. Zone 2 (conversational pace) is optimal here.', ex: [['Warm-Up Walk','5 min'],['Zone-2 Jog (conversational pace)','25 min'],['Cool Down Walk','5 min']], days: 'Mon, Wed', time: '7:00 PM' },
+        active: { name: 'Evening Wind-Down', dur: '30 min', int: 'Low', intClass: 'p-int-low', note: "Light movement before bed activates the parasympathetic nervous system \u2014 you'll fall asleep faster and sleep deeper.", ex: [['Leisurely Walk','15 min'],['Gentle Neck Rolls','2 \u00d7 5 each side'],['Lying Quad Stretch','2 \u00d7 45 sec each'],['Deep Breathing','5 min']], days: 'Mon\u2013Fri', time: '8:00 PM' },
+        flex:   { name: 'Yin Yoga for Sleep', dur: '40 min', int: 'Low', intClass: 'p-int-low', note: 'Long-held passive stretches relax the nervous system, reduce cortisol, and prepare your body and mind for deep, restorative sleep.', ex: [['Butterfly Pose','3 min'],['Supported Bridge','3 min'],['Sleeping Swan (Pigeon)','3 min each'],['Savasana with Breath','5 min']], days: 'Sun, Wed', time: '8:30 PM' },
+      },
+      weekend: {
+        muscle: { name: 'Full Body Power Day', dur: '60 min', int: 'High', intClass: 'p-int-high', note: 'Weekend sessions let you go heavier and longer without time pressure. A full-body power session maximises weekly muscle stimulus.', ex: [['Deadlifts','4 \u00d7 5 reps'],['Bench Press','4 \u00d7 6 reps'],['Barbell Row','4 \u00d7 6 reps'],['Overhead Press','3 \u00d7 8 reps']], days: 'Saturday', time: '10:00 AM' },
+        lose:   { name: 'Outdoor Circuit', dur: '55 min', int: 'Medium', intClass: 'p-int-medium', note: 'Outdoor weekend sessions combine cardio and resistance for full-body calorie burn. Fresh air boosts adherence and mood.', ex: [['Park Run','15 min'],['Pull-Up Bar Circuit','3 \u00d7 10 reps'],['Bench Dips & Step-Ups','3 \u00d7 12 reps'],['Sprint Finisher','6 \u00d7 20 sec on/40 off']], days: 'Saturday', time: '9:30 AM' },
+        cardio: { name: 'Long Run or Ride', dur: '60 min', int: 'Medium', intClass: 'p-int-medium', note: 'The weekend long run or ride builds your aerobic base. This is the cornerstone session serious cardio athletes plan their week around.', ex: [['Easy Warm-Up Jog','10 min'],['Long Steady Run or Ride','40 min'],['Cool Down + Stretch','10 min']], days: 'Sunday', time: '8:00 AM' },
+        active: { name: 'Active Recovery Day', dur: '45 min', int: 'Low', intClass: 'p-int-low', note: 'Active recovery on weekends accelerates muscle repair, reduces soreness, and mentally resets you for the week ahead.', ex: [['Nature Walk or Swim','25 min'],['Foam Roll Full Body','10 min'],['Gentle Yoga or Stretch','10 min']], days: 'Sunday', time: '10:00 AM' },
+        flex:   { name: 'Full Flexibility Practice', dur: '50 min', int: 'Low', intClass: 'p-int-low', note: 'A dedicated weekend flexibility session accelerates long-term range of motion gains faster than short daily stretches alone.', ex: [['Full Body Warm-Up Flow','10 min'],['Hip & Hamstring Deep Work','3 \u00d7 90 sec each'],['Thoracic Spine Mobility','3 \u00d7 60 sec'],['Full Body Integration','10 min']], days: 'Saturday', time: '10:00 AM' },
+      },
+    };
+
+    const slotLabels = { before: 'Before Work', lunch: 'Lunch Hour', after: 'After Work', evening: 'Evening', weekend: 'Weekend' };
+    const goalLabels = { muscle: 'Build Muscle', lose: 'Lose Weight', cardio: 'Improve Cardio', active: 'Stay Active', flex: 'Flexibility' };
+
+    let pSelectedSlot = 'before';
+    let pSelectedGoal = 'muscle';
+
+    function pRenderWorkout() {
+      const w = pWorkouts[pSelectedSlot][pSelectedGoal];
+      const pResult = document.getElementById('pResult');
+      if (!pResult) return;
+      pResult.classList.add('p-updating');
+      setTimeout(() => {
+        pResult.innerHTML = `
+          <div class="p-result-card">
+            <div class="p-result-top">
+              <div class="p-result-badges">
+                <span class="p-intensity ${w.intClass}">${w.int} Intensity</span>
+                <span class="p-dur-badge">${w.dur}</span>
+              </div>
+              <span class="p-result-ctx">${slotLabels[pSelectedSlot]} &middot; ${goalLabels[pSelectedGoal]}</span>
+            </div>
+            <div class="p-result-body">
+              <div class="p-result-name">${w.name}</div>
+              <div class="p-result-note">${w.note}</div>
+              <div class="p-exercises-list">
+                ${w.ex.map(([name, detail]) => `<div class="p-exercise"><span class="p-ex-name">${name}</span><span class="p-ex-detail">${detail}</span></div>`).join('')}
+              </div>
+            </div>
+            <div class="p-result-footer">
+              <span class="p-cal-preview">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Schedules for ${w.days} at ${w.time}
+              </span>
+              <a href="#cta" class="p-footer-cta">Get FitMyTime Free &#8594;</a>
+            </div>
+          </div>`;
+        pResult.classList.remove('p-updating');
+      }, 220);
+    }
+
+    document.querySelectorAll('#pSlots .p-slot').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#pSlots .p-slot').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        pSelectedSlot = btn.dataset.slot;
+        pRenderWorkout();
+      });
+    });
+
+    document.querySelectorAll('#pGoals .p-goal').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#pGoals .p-goal').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        pSelectedGoal = btn.dataset.goal;
+        pRenderWorkout();
+      });
+    });
+
+    pRenderWorkout();
+
     // ===== #2 FAQ accordion =====
     document.querySelectorAll('.faq-question').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -2637,6 +2987,204 @@
     }, { passive: true });
     backToTop.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ===== Demo schedule mode switcher =====
+    const demoModes = {
+      lunchtime: {
+        desc: 'Finds a free slot during your lunch break (default 8 AM\u20136 PM working hours)',
+        popup: { badge: 'Gap found \u2014 Wed 12:00', workout: 'Upper Body Blast', meta: '40 min \u00b7 Dumbbells \u00b7 Strength' },
+        days: [
+          { label: 'Mon', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:00 Standup', h: 40 },
+            { time: '10:30 Design Review', h: 56 },
+            { time: '2:00 1:1', h: 32 }
+          ]},
+          { label: 'Tue', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:30 Sprint Planning', h: 48 },
+            { time: '1:00 Lunch call', h: 36 },
+            { time: '3:30 Client sync', h: 44 }
+          ]},
+          { label: 'Wed', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:00 Standup', h: 40 },
+            { time: '12:00\u201312:45', h: 50, type: 'gap', extra: 'Free slot \u2713' },
+            { time: '12:00 Workout', h: 50, type: 'workout', extra: 'Upper Body' }
+          ]},
+          { label: 'Thu', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '10:00 All Hands', h: 52 },
+            { time: '2:00 Code review', h: 36 }
+          ]},
+          { label: 'Fri', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:30 Retro', h: 40 },
+            { time: '11:00 Demo day', h: 44 },
+            { time: '3:00 Wrap-up', h: 32 }
+          ]}
+        ]
+      },
+      before: {
+        desc: 'Schedules a workout before your commute \u2014 start the day strong (workout before 8 AM)',
+        popup: { badge: 'Gap found \u2014 Tue 6:30 AM', workout: 'Morning HIIT', meta: '30 min \u00b7 Bodyweight \u00b7 Cardio' },
+        days: [
+          { label: 'Mon', blocks: [
+            { time: '6:30 Workout', h: 46, type: 'workout', extra: 'Morning HIIT' },
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:00 Standup', h: 40 },
+            { time: '10:30 Design Review', h: 56 }
+          ]},
+          { label: 'Tue', blocks: [
+            { time: '6:30\u20137:00 AM', h: 46, type: 'gap', extra: 'Free slot \u2713' },
+            { time: '6:30 Workout', h: 46, type: 'workout', extra: 'Morning HIIT' },
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:30 Sprint Planning', h: 48 }
+          ]},
+          { label: 'Wed', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:00 Standup', h: 40 },
+            { time: '11:00 Deep work', h: 52 },
+            { time: '2:00 1:1', h: 32 }
+          ]},
+          { label: 'Thu', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '10:00 All Hands', h: 52 },
+            { time: '1:00 Lunch mtg', h: 36 },
+            { time: '3:00 Code review', h: 36 }
+          ]},
+          { label: 'Fri', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:30 Retro', h: 40 },
+            { time: '11:00 Demo day', h: 44 },
+            { time: '3:00 Wrap-up', h: 32 }
+          ]}
+        ]
+      },
+      after: {
+        desc: 'Schedules workouts after 6 PM once your workday + commute are done (configurable)',
+        popup: { badge: 'Gap found \u2014 Thu 6:15 PM', workout: 'Leg Day Express', meta: '35 min \u00b7 Dumbbells \u00b7 Strength' },
+        days: [
+          { label: 'Mon', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:00 Standup', h: 40 },
+            { time: '10:30 Design Review', h: 56 },
+            { time: '2:00 1:1', h: 32 },
+            { time: '5:00 Commute', h: 28 }
+          ]},
+          { label: 'Tue', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:30 Sprint Planning', h: 48 },
+            { time: '1:00 Lunch call', h: 36 },
+            { time: '3:30 Client sync', h: 44 },
+            { time: '5:00 Commute', h: 28 }
+          ]},
+          { label: 'Wed', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:00 Standup', h: 40 },
+            { time: '11:00 Deep work', h: 52 },
+            { time: '5:00 Commute', h: 28 },
+            { time: '6:30 Dinner plans', h: 36 }
+          ]},
+          { label: 'Thu', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '10:00 All Hands', h: 52 },
+            { time: '2:00 Code review', h: 36 },
+            { time: '5:00 Commute', h: 28 },
+            { time: '6:15\u20137:00 PM', h: 46, type: 'gap', extra: 'Free slot \u2713' },
+            { time: '6:15 Workout', h: 46, type: 'workout', extra: 'Leg Day' }
+          ]},
+          { label: 'Fri', blocks: [
+            { time: '8:00 Commute', h: 28 },
+            { time: '9:30 Retro', h: 40 },
+            { time: '11:00 Demo day', h: 44 },
+            { time: '5:00 Commute', h: 28 }
+          ]}
+        ]
+      },
+      wfh: {
+        desc: 'No commute \u2014 finds any available gap throughout the day for a workout',
+        popup: { badge: 'Gap found \u2014 Mon 10:00 AM', workout: 'Full Body Flow', meta: '45 min \u00b7 Mat only \u00b7 Flexibility' },
+        days: [
+          { label: 'Mon', blocks: [
+            { time: '9:00 Standup', h: 40 },
+            { time: '10:00\u201310:45', h: 50, type: 'gap', extra: 'Free slot \u2713' },
+            { time: '10:00 Workout', h: 50, type: 'workout', extra: 'Full Body' },
+            { time: '11:00 Design Review', h: 48 },
+            { time: '2:00 1:1', h: 32 }
+          ]},
+          { label: 'Tue', blocks: [
+            { time: '9:30 Sprint Planning', h: 48 },
+            { time: '11:30 Focus time', h: 52 },
+            { time: '1:00 Lunch call', h: 36 },
+            { time: '3:30 Client sync', h: 44 }
+          ]},
+          { label: 'Wed', blocks: [
+            { time: '9:00 Standup', h: 40 },
+            { time: '10:00 Deep work', h: 56 },
+            { time: '1:00 Lunch', h: 32 },
+            { time: '2:30 Team sync', h: 40 }
+          ]},
+          { label: 'Thu', blocks: [
+            { time: '10:00 All Hands', h: 52 },
+            { time: '12:00 Lunch break', h: 36 },
+            { time: '1:30 Code review', h: 36 },
+            { time: '3:00 Planning', h: 44 }
+          ]},
+          { label: 'Fri', blocks: [
+            { time: '9:30 Retro', h: 40 },
+            { time: '11:00 Demo day', h: 44 },
+            { time: '1:00 Async work', h: 48 },
+            { time: '3:00 Wrap-up', h: 32 }
+          ]}
+        ]
+      }
+    };
+
+    function renderDemoMode(mode) {
+      const data = demoModes[mode];
+      const body = document.getElementById('demoBrowserBody');
+      const desc = document.getElementById('demoModeDesc');
+      if (!body || !data) return;
+
+      desc.textContent = data.desc;
+
+      let calHTML = '<div class="demo-cal">';
+      data.days.forEach(day => {
+        calHTML += '<div class="demo-cal-day">';
+        calHTML += '<div class="demo-cal-label">' + day.label + '</div>';
+        day.blocks.forEach(b => {
+          const cls = b.type === 'gap' ? ' gap' : b.type === 'workout' ? ' workout' : '';
+          const content = b.extra ? b.time + '<br>' + b.extra : b.time;
+          calHTML += '<div class="demo-cal-block' + cls + '" style="height:' + b.h + 'px">' + content + '</div>';
+        });
+        calHTML += '</div>';
+      });
+      calHTML += '</div>';
+
+      const p = data.popup;
+      calHTML += '<div class="demo-popup">'
+        + '<div class="demo-popup-header"><div class="demo-popup-icon">F</div><div class="demo-popup-title">FitMyTime</div></div>'
+        + '<div class="demo-popup-badge">' + p.badge + '</div>'
+        + '<div class="demo-popup-workout">' + p.workout + '</div>'
+        + '<div class="demo-popup-meta">' + p.meta + '</div>'
+        + '<div class="demo-popup-btn">Add to Calendar</div>'
+        + '</div>';
+
+      body.innerHTML = calHTML;
+    }
+
+    // Init default mode
+    renderDemoMode('lunchtime');
+
+    // Mode pill click handlers
+    document.querySelectorAll('.demo-mode-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.demo-mode-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        renderDemoMode(pill.dataset.mode);
+      });
     });
 
     // ===== Email capture form =====
