@@ -1686,11 +1686,195 @@
       }
     }
 
+    // ===== DRAG & DROP =====
+    let dragSourceKey = null;
+
+    function handleDragStart(e, key) {
+      dragSourceKey = key;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', key);
+      e.target.classList.add('dragging');
+    }
+
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      dragSourceKey = null;
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const cell = e.currentTarget;
+      cell.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      const sourceKey = e.dataTransfer.getData('text/plain');
+      const targetCell = e.currentTarget;
+      const targetKey = targetCell.dataset.key;
+      if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+
+      pushUndo();
+      const sourceWorkout = state.weekPlan[sourceKey];
+      const targetWorkout = state.weekPlan[targetKey];
+      // Swap or move
+      if (targetWorkout) {
+        state.weekPlan[sourceKey] = targetWorkout;
+      } else {
+        delete state.weekPlan[sourceKey];
+      }
+      if (sourceWorkout) {
+        state.weekPlan[targetKey] = sourceWorkout;
+      }
+      saveState();
+      renderAll();
+    }
+
+    // ===== DUPLICATE WORKOUT =====
+    function showDuplicateSelect() {
+      const row = document.getElementById('duplicateRow');
+      const sel = document.getElementById('duplicateTarget');
+      sel.innerHTML = '';
+      DAYS.forEach(day => {
+        TIME_SLOTS.forEach(slot => {
+          const key = `${day}-${slot}`;
+          if (key === editingKey) return;
+          const taken = state.weekPlan[key] ? ' (occupied)' : '';
+          sel.innerHTML += `<option value="${key}">${day} ${slot}${taken}</option>`;
+        });
+      });
+      row.style.display = 'flex';
+    }
+
+    function confirmDuplicate() {
+      const targetKey = document.getElementById('duplicateTarget').value;
+      if (!targetKey || !editingKey) return;
+      const workout = state.weekPlan[editingKey];
+      if (!workout) return;
+      pushUndo();
+      state.weekPlan[targetKey] = JSON.parse(JSON.stringify(workout));
+      saveState();
+      document.getElementById('duplicateRow').style.display = 'none';
+      closeDetailModal();
+      renderAll();
+    }
+
+    // ===== WEEK SUMMARY =====
+    function renderSummary() {
+      const container = document.getElementById('weekSummary');
+      const workouts = Object.values(state.weekPlan);
+      const count = workouts.length;
+
+      if (count === 0) {
+        container.innerHTML = '<span class="week-summary-stat">No workouts planned yet</span>';
+        return;
+      }
+
+      const totalDuration = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
+      const muscles = new Set();
+      workouts.forEach(w => {
+        (w.exercises || []).forEach(ex => {
+          if (ex.muscleGroup) muscles.add(ex.muscleGroup);
+        });
+      });
+
+      const musclePills = [...muscles].map(m =>
+        `<span class="wc-badge">${cap(m.replace('_', ' '))}</span>`
+      ).join('');
+
+      container.innerHTML = `
+        <span class="week-summary-stat">${count} workout${count !== 1 ? 's' : ''}</span>
+        <span class="week-summary-sep">|</span>
+        <span class="week-summary-stat">${totalDuration} min total</span>
+        ${muscles.size > 0 ? `<span class="week-summary-sep">|</span><span class="week-summary-muscles">${musclePills}</span>` : ''}
+      `;
+    }
+
+    // ===== SAVED PLANS =====
+    function savePlan() {
+      const name = prompt('Name this plan:');
+      if (!name || !name.trim()) return;
+      if (!state.savedPlans) state.savedPlans = [];
+      state.savedPlans.push({
+        name: name.trim(),
+        weekPlan: JSON.parse(JSON.stringify(state.weekPlan)),
+        goal: state.goal,
+        location: state.location,
+        minDuration: state.minDuration,
+        maxDuration: state.maxDuration,
+        restrictions: state.restrictions,
+        savedAt: new Date().toISOString(),
+      });
+      saveState();
+      renderSavedPlansSelect();
+    }
+
+    function renderSavedPlansSelect() {
+      const sel = document.getElementById('savedPlansSelect');
+      const plans = state.savedPlans || [];
+      if (plans.length === 0) {
+        sel.style.display = 'none';
+        return;
+      }
+      sel.style.display = '';
+      sel.innerHTML = '<option value="">Load plan...</option>';
+      plans.forEach((p, i) => {
+        sel.innerHTML += `<option value="load:${i}">${esc(p.name)}</option>`;
+      });
+      sel.innerHTML += '<option disabled>───────────</option>';
+      plans.forEach((p, i) => {
+        sel.innerHTML += `<option value="delete:${i}">Delete: ${esc(p.name)}</option>`;
+      });
+      sel.value = '';
+    }
+
+    function loadOrDeletePlan(val) {
+      if (!val) return;
+      const [action, idxStr] = val.split(':');
+      const idx = parseInt(idxStr);
+      const plans = state.savedPlans || [];
+      if (idx < 0 || idx >= plans.length) return;
+
+      if (action === 'load') {
+        const plan = plans[idx];
+        pushUndo();
+        state.weekPlan = JSON.parse(JSON.stringify(plan.weekPlan));
+        state.goal = plan.goal || state.goal;
+        state.location = plan.location || state.location;
+        state.minDuration = plan.minDuration || state.minDuration;
+        state.maxDuration = plan.maxDuration || state.maxDuration;
+        state.restrictions = plan.restrictions || '';
+        saveState();
+        renderAll();
+      } else if (action === 'delete') {
+        if (!confirm(`Delete plan "${plans[idx].name}"?`)) {
+          document.getElementById('savedPlansSelect').value = '';
+          return;
+        }
+        state.savedPlans.splice(idx, 1);
+        saveState();
+        renderSavedPlansSelect();
+      }
+      document.getElementById('savedPlansSelect').value = '';
+    }
+
     // ===== KEYBOARD =====
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         closeDetailModal();
         closeImportModal();
+      }
+      // Ctrl+Z / Cmd+Z for undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
       }
     });
 
