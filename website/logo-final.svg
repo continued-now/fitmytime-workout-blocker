@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- FitMyTime Logo: Calendar + Dumbbell in Gap -->
+
+  <!-- Shadow -->
+  <rect x="14" y="30" width="100" height="86" rx="12" fill="#0C1220" opacity="0.06"/>
+
+  <!-- Calendar body -->
+  <rect x="12" y="26" width="104" height="90" rx="12" fill="#fff" stroke="#0C1220" stroke-width="4"/>
+
+  <!-- Calendar top bar -->
+  <rect x="12" y="26" width="104" height="26" rx="12" fill="#2563EB"/>
+  <rect x="12" y="40" width="104" height="12" fill="#2563EB"/>
+
+  <!-- Calendar rings -->
+  <rect x="36" y="17" width="7" height="22" rx="3.5" fill="#0C1220"/>
+  <rect x="85" y="17" width="7" height="22" rx="3.5" fill="#0C1220"/>
+
+  <!-- Ring caps (white to show over blue bar) -->
+  <rect x="37" y="30" width="5" height="4" rx="2" fill="#fff"/>
+  <rect x="86" y="30" width="5" height="4" rx="2" fill="#fff"/>
+
+  <!-- Row 1: event bars -->
+  <rect x="24" y="60" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+  <rect x="53" y="60" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+  <rect x="82" y="60" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+
+  <!-- Row 2: gap in middle column -->
+  <rect x="24" y="72" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+  <!-- GAP: dashed outline slot -->
+  <rect x="50" y="69" width="28" height="12" rx="4" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" stroke-dasharray="4 3"/>
+  <rect x="82" y="72" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+
+  <!-- Row 3: event bars -->
+  <rect x="24" y="84" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+  <rect x="53" y="84" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+  <rect x="82" y="84" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+
+  <!-- Row 4: partial -->
+  <rect x="24" y="96" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+  <rect x="82" y="96" width="22" height="5" rx="2.5" fill="#CBD5E1"/>
+
+  <!-- Dumbbell icon in the gap -->
+  <g transform="translate(64, 75)">
+    <!-- bar -->
+    <rect x="-9" y="-2" width="18" height="4" rx="1.5" fill="#2563EB"/>
+    <!-- left weight -->
+    <rect x="-12" y="-4.5" width="5" height="9" rx="2" fill="#2563EB"/>
+    <!-- right weight -->
+    <rect x="7" y="-4.5" width="5" height="9" rx="2" fill="#2563EB"/>
+  </g>
+</svg>

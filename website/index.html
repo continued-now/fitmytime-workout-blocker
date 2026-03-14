@@ -16,8 +16,10 @@
   <meta name="twitter:title" content="FitMyTime — Smart Workout Scheduling for Busy People">
   <meta name="twitter:description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
 
-  <!-- #7 Favicon — inline SVG data URI -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563EB'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='white' font-family='sans-serif' font-size='20' font-weight='bold'>F</text></svg>">
+  <!-- #7 Favicon — calendar + dumbbell logo -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='6' width='28' height='24' rx='4' fill='%23fff' stroke='%230C1220' stroke-width='2'/><rect x='2' y='6' width='28' height='8' rx='4' fill='%232563EB'/><rect x='2' y='10' width='28' height='4' fill='%232563EB'/><rect x='9' y='3' width='3' height='8' rx='1.5' fill='%230C1220'/><rect x='20' y='3' width='3' height='8' rx='1.5' fill='%230C1220'/><g transform='translate(16,22)'><rect x='-6' y='-1.5' width='12' height='3' rx='1' fill='%232563EB'/><rect x='-8.5' y='-3.5' width='4' height='7' rx='1.5' fill='%232563EB'/><rect x='4.5' y='-3.5' width='4' height='7' rx='1.5' fill='%232563EB'/></g></svg>" type="image/svg+xml">
+  <link rel="icon" href="logo-small.svg" type="image/svg+xml" sizes="any">
+  <link rel="apple-touch-icon" href="../icons/icon128.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,6 +53,26 @@
       --font-display: 'Bricolage Grotesque', Georgia, serif;
       --font-body: 'DM Sans', -apple-system, sans-serif;
       --font-serif: 'Source Serif 4', Georgia, serif;
+    }
+
+    /* ===== DARK MODE VARIABLES ===== */
+    [data-theme="dark"] {
+      --cream: #0C1220;
+      --white: #161D30;
+      --blue-light: rgba(37,99,235,0.12);
+      --blue-mist: rgba(37,99,235,0.2);
+      --dark: #0C1220;
+      --dark-card: #1A2235;
+      --text: #E5E7EB;
+      --text-mid: #B0B8C9;
+      --text-soft: #8B95A8;
+      --text-faint: #6B7280;
+      --border: #2A3048;
+      --border-light: #1E2740;
+      --coral-light: rgba(249,115,22,0.12);
+      --green-light: rgba(16,185,129,0.12);
+      --amber-light: rgba(245,158,11,0.12);
+      --red-light: rgba(239,68,68,0.12);
     }
 
     html { scroll-behavior: smooth; }
@@ -106,15 +128,10 @@
     }
     .nav-icon {
       width: 36px; height: 36px;
-      background: var(--blue);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      flex-shrink: 0;
+    }
+    .nav-icon svg {
+      width: 100%; height: 100%;
     }
     .nav-links {
       display: flex;
@@ -146,6 +163,8 @@
       width: 100%;
     }
     .nav-links a:hover { color: var(--text); }
+    .nav-links a.nav-text.active { color: var(--text); }
+    .nav-links a.nav-text.active::after { width: 100%; }
     .nav-cta {
       background: var(--blue) !important;
       color: var(--white) !important;
@@ -160,6 +179,32 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 16px rgba(37,99,235,0.28) !important;
     }
+
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle {
+      background: none;
+      border: 1.5px solid var(--border);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-soft);
+      transition: border-color 0.25s, color 0.25s, background 0.25s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      border-color: var(--text-faint);
+      color: var(--text);
+      background: var(--blue-light);
+    }
+    .theme-toggle svg { width: 18px; height: 18px; }
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: block; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
     /* #4 Mobile hamburger menu */
     .hamburger {
@@ -1182,16 +1227,24 @@
     /* ===== FOOTER ===== */
     footer {
       background: var(--dark);
-      padding: 52px 32px;
+      padding: 64px 32px 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
     .footer-inner {
       max-width: 1200px;
       margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 24px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1.5fr;
+      gap: 48px;
+    }
+    .footer-col-title {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
     }
     .footer-brand {
       display: flex;
@@ -1201,21 +1254,48 @@
       font-size: 20px;
       font-weight: 800;
       color: var(--white);
+      margin-bottom: 12px;
     }
     .footer-icon {
       width: 30px; height: 30px;
-      background: var(--blue);
-      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .footer-icon svg {
+      width: 100%; height: 100%;
+    }
+    .footer-tagline {
+      font-size: 14px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      max-width: 300px;
+    }
+    .footer-social {
+      display: flex;
+      gap: 12px;
+    }
+    .footer-social a {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 14px;
-      font-weight: 800;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: background 0.25s, color 0.25s;
+    }
+    .footer-social a:hover {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+    }
+    .footer-social svg {
+      width: 16px; height: 16px;
     }
     .footer-links {
       display: flex;
-      gap: 28px;
+      flex-direction: column;
+      gap: 12px;
       list-style: none;
     }
     .footer-links a {
@@ -1226,6 +1306,52 @@
       transition: color 0.25s;
     }
     .footer-links a:hover { color: rgba(255,255,255,0.8); }
+    .footer-email-form {
+      display: flex;
+      gap: 8px;
+    }
+    .footer-email-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--white);
+      background: rgba(255,255,255,0.06);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .footer-email-input::placeholder { color: rgba(255,255,255,0.3); }
+    .footer-email-input:focus { border-color: var(--blue); }
+    .footer-email-btn {
+      padding: 10px 18px;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .footer-email-btn:hover { background: var(--blue-hover); }
+    .footer-email-success {
+      font-size: 13px;
+      color: var(--green);
+      margin-top: 8px;
+      display: none;
+    }
+    .footer-email-success.visible { display: block; }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 40px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+    }
     .footer-copy {
       font-size: 13px;
       color: rgba(255,255,255,0.25);
@@ -1372,6 +1498,10 @@
       padding: 20px;
       background: white;
       min-height: 240px;
+      transition: opacity 0.3s ease;
+    }
+    .demo-browser-body.fading {
+      opacity: 0;
     }
     .demo-cal {
       display: grid;
@@ -1613,6 +1743,234 @@
       margin-top: 12px;
     }
 
+    /* ===== EMAIL VALIDATION ===== */
+    .email-input.error {
+      border-color: var(--red);
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .email-error-msg {
+      font-size: 13px;
+      color: var(--red);
+      margin-top: 8px;
+      display: none;
+      text-align: center;
+    }
+    .email-error-msg.visible {
+      display: block;
+    }
+
+    /* ===== SCROLL PROGRESS BAR ===== */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background: var(--blue);
+      z-index: 101;
+    }
+
+    /* ===== TESTIMONIAL COMPANY ===== */
+    .t-company {
+      font-size: 12px;
+      color: var(--text-faint);
+    }
+
+    /* ===== HERO SOCIAL PROOF ===== */
+    .hero-social-proof {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 24px;
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-top: 20px;
+    }
+    .hero-social-proof strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .hero-social-proof svg {
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+
+    /* ===== HERO GLOW ===== */
+    .hero-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: var(--blue);
+      opacity: 0;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity 0.4s ease;
+    }
+    @media (hover: none) {
+      .hero-glow { display: none; }
+    }
+
+    /* ===== STICKY MOBILE CTA ===== */
+    .mobile-cta-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 12px 20px;
+      z-index: 95;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      display: none;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    }
+    .mobile-cta-bar.visible {
+      transform: translateY(0);
+    }
+    .mobile-cta-bar .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* ===== DARK MODE COMPONENT OVERRIDES ===== */
+    [data-theme="dark"] nav {
+      background: rgba(12,18,32,0.85);
+    }
+    [data-theme="dark"] .mobile-menu {
+      background: var(--cream);
+    }
+    [data-theme="dark"] .mockup,
+    [data-theme="dark"] .hero-cal-card {
+      box-shadow: 0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    [data-theme="dark"] .m-tabs,
+    [data-theme="dark"] .hero-cal-header,
+    [data-theme="dark"] .hero-cal-day-headers {
+      background: var(--white);
+    }
+    [data-theme="dark"] .m-tab.active,
+    [data-theme="dark"] .m-card,
+    [data-theme="dark"] .m-card2,
+    [data-theme="dark"] .m-settings-value {
+      background: var(--cream);
+    }
+    [data-theme="dark"] .demo-browser {
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .demo-browser-bar {
+      background: var(--white);
+    }
+    [data-theme="dark"] .demo-browser-body {
+      background: var(--cream);
+    }
+    [data-theme="dark"] .demo-browser-url {
+      background: var(--cream);
+      color: var(--text-faint);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .demo-cal-block {
+      background: var(--white);
+      color: var(--text-soft);
+    }
+    [data-theme="dark"] .demo-popup {
+      background: var(--white);
+      border-color: var(--border);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+    }
+    [data-theme="dark"] .demo-mode-pill {
+      background: var(--white);
+      border-color: var(--border);
+      color: var(--text-soft);
+    }
+    [data-theme="dark"] .comparison-col-without {
+      background: rgba(239,68,68,0.08);
+      border-color: rgba(239,68,68,0.2);
+    }
+    [data-theme="dark"] .comparison-col-with {
+      background: rgba(16,185,129,0.08);
+      border-color: rgba(16,185,129,0.2);
+    }
+    [data-theme="dark"] .faq-item {
+      background: var(--white);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .email-input {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .email-input::placeholder {
+      color: var(--text-faint);
+    }
+    [data-theme="dark"] .marquee-strip {
+      background: var(--white);
+      border-color: var(--border-light);
+    }
+    [data-theme="dark"] .marquee-strip::before {
+      background: linear-gradient(to right, var(--white), transparent);
+    }
+    [data-theme="dark"] .marquee-strip::after {
+      background: linear-gradient(to left, var(--white), transparent);
+    }
+    [data-theme="dark"] .marquee-badge {
+      border-color: var(--border-light);
+      color: var(--text-soft);
+    }
+    [data-theme="dark"] .hero-popup-card {
+      background: var(--white);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    [data-theme="dark"] .p-selectors {
+      background: var(--white);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .p-slot {
+      background: var(--cream);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .p-goal {
+      background: var(--cream);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .p-result-card {
+      background: var(--white);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .mobile-cta-bar {
+      background: var(--white);
+      border-color: var(--border);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.25);
+    }
+    [data-theme="dark"] .step-mini-card {
+      background: var(--white);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .annotation-label {
+      background: var(--white);
+      border-color: var(--border);
+    }
+    [data-theme="dark"] .hero::before,
+    [data-theme="dark"] .how::before,
+    [data-theme="dark"] .faq::before,
+    [data-theme="dark"] .personalize::before {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+    }
+    [data-theme="dark"] ::selection {
+      background: rgba(37,99,235,0.3);
+      color: var(--blue);
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 960px) {
       .hero-inner { grid-template-columns: 1fr; text-align: center; }
@@ -1620,6 +1978,7 @@
       .hero p { margin-left: auto; margin-right: auto; }
       .hero-actions { justify-content: center; }
       .hero-trust { justify-content: center; }
+      .hero-social-proof { justify-content: center; }
       .hero-visual { margin-top: 48px; }
       .annotation { display: none; }
       .hero-cal-wrap { padding: 16px 16px 36px 8px; }
@@ -1656,9 +2015,10 @@
       .stats-inner { grid-template-columns: 1fr; gap: 32px; }
       .nav-inner { padding: 0 20px; }
       .mockup { width: 300px; }
-      .footer-inner { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; flex-wrap: wrap; gap: 16px; }
+      .footer-inner { grid-template-columns: 1fr; text-align: center; }
+      .footer-tagline { margin: 0 auto 20px; }
       .hero-trust { flex-direction: column; gap: 8px; }
+      .hero-social-proof { width: 100%; justify-content: center; }
       /* Stack hero CTA buttons full-width */
       .hero-actions { flex-direction: column; align-items: stretch; }
       .hero-actions .btn { justify-content: center; }
@@ -1690,6 +2050,12 @@
       /* Email form */
       .email-form { flex-direction: column; }
       .email-submit-btn { width: 100%; justify-content: center; }
+      /* Mobile CTA bar */
+      .mobile-cta-bar { display: block; }
+      .back-to-top.visible { bottom: 80px; }
+      /* Footer */
+      .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+      .footer-email-form { max-width: 360px; }
     }
 
     @media (max-width: 400px) {
@@ -2200,8 +2566,20 @@
         animation: none !important;
         opacity: 1 !important;
       }
+      .hero-glow {
+        display: none !important;
+      }
     }
   </style>
+  <script>
+    // Prevent FOUC: apply saved theme before paint
+    (function(){
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -2216,15 +2594,20 @@
   <nav id="nav">
     <div class="nav-inner">
       <a href="#" class="nav-logo">
-        <div class="nav-icon">F</div>
+        <div class="nav-icon"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="6" width="28" height="24" rx="4" fill="#fff" stroke="#0C1220" stroke-width="2"/><rect x="2" y="6" width="28" height="8" rx="4" fill="#2563EB"/><rect x="2" y="10" width="28" height="4" fill="#2563EB"/><rect x="9" y="3" width="3" height="8" rx="1.5" fill="#0C1220"/><rect x="20" y="3" width="3" height="8" rx="1.5" fill="#0C1220"/><g transform="translate(16,22)"><rect x="-6" y="-1.5" width="12" height="3" rx="1" fill="#2563EB"/><rect x="-8.5" y="-3.5" width="4" height="7" rx="1.5" fill="#2563EB"/><rect x="4.5" y="-3.5" width="4" height="7" rx="1.5" fill="#2563EB"/></g></svg></div>
         FitMyTime
       </a>
       <ul class="nav-links">
         <li><a href="#features" class="nav-text">Features</a></li>
         <li><a href="#how" class="nav-text">How It Works</a></li>
         <li><a href="#reviews" class="nav-text">Reviews</a></li>
+        <li><a href="planner.html" class="nav-text">Plan Your Week</a></li>
         <li><a href="#cta" class="nav-cta">Add to Chrome</a></li>
       </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <!-- #4 Hamburger button -->
       <button class="hamburger" id="hamburger" aria-label="Open menu">
         <span></span>
@@ -2233,6 +2616,7 @@
       </button>
     </div>
   </nav>
+  <div class="scroll-progress" id="scrollProgress"></div>
 
   <!-- #4 Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
@@ -2247,6 +2631,7 @@
 
   <!-- HERO -->
   <section class="hero">
+    <div class="hero-glow" id="heroGlow"></div>
     <!-- #8 Noise overlay -->
     <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
       <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
@@ -2274,6 +2659,10 @@
           <span><span class="trust-check">&#10003;</span> No account needed</span>
           <span><span class="trust-check">&#10003;</span> Google Calendar</span>
           <span><span class="trust-check">&#10003;</span> 100% private</span>
+        </div>
+        <div class="hero-social-proof hero-anim hero-anim-d5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <strong>200+</strong> people on the waitlist
         </div>
       </div>
       <div class="hero-visual hero-anim hero-anim-d5">
@@ -2510,6 +2899,9 @@
         </div>
       </div>
       <div class="p-result reveal reveal-d2" id="pResult"></div>
+      <div style="text-align:center;margin-top:32px" class="reveal reveal-d3">
+        <a href="planner.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:#2563EB;color:#fff;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;font-family:var(--font-body);transition:background 0.15s" onmouseover="this.style.background='#1D4ED8'" onmouseout="this.style.background='#2563EB'">Plan Your Full Week &rarr;</a>
+      </div>
     </div>
   </section>
 
@@ -2655,36 +3047,45 @@
         <div class="t-card reveal reveal-d1">
           <span class="t-quote-mark">&ldquo;</span>
           <span class="t-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <p class="t-text">I used to spend 20 minutes figuring out when to work out. Now it just appears in my calendar. The streak counter is genuinely motivating.</p>
+          <p class="t-text">I hit a 14-day streak without even thinking about scheduling. It just finds the gaps and fills them. The streak counter is genuinely addictive.</p>
           <div class="t-author">
-            <div class="t-avatar t-avatar-blue">S</div>
+            <div class="t-avatar t-avatar-blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
             <div>
-              <div class="t-name">Sarah K.</div>
-              <div class="t-role">Product Manager</div>
+              <div class="t-name">Sarah Kimura</div>
+              <div class="t-role">Product Designer</div>
+              <div class="t-company">at Figma</div>
             </div>
           </div>
         </div>
         <div class="t-card reveal reveal-d2">
           <span class="t-quote-mark">&ldquo;</span>
           <span class="t-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <p class="t-text">The reschedule feature is a game changer. My meetings shift constantly and FitMyTime rolls with it. Haven't missed a workout in 3 weeks.</p>
+          <p class="t-text">My meetings shift constantly and FitMyTime just rolls with it. Smart rescheduling means I haven&rsquo;t missed a workout in three weeks straight.</p>
           <div class="t-author">
-            <div class="t-avatar t-avatar-coral">M</div>
+            <div class="t-avatar t-avatar-coral">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
             <div>
-              <div class="t-name">Marcus T.</div>
-              <div class="t-role">Software Engineer</div>
+              <div class="t-name">Marcus Torres</div>
+              <div class="t-role">Backend Engineer</div>
+              <div class="t-company">at Stripe</div>
             </div>
           </div>
         </div>
         <div class="t-card reveal reveal-d3">
           <span class="t-quote-mark">&ldquo;</span>
           <span class="t-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <p class="t-text">Finally an extension that doesn't try to be a full app. It lives in my browser, respects my calendar, and the workouts are actually good.</p>
+          <p class="t-text">Finally something lightweight that just lives in my browser. No app, no subscription. The equipment matching is perfect &mdash; I only have a mat and resistance bands.</p>
           <div class="t-author">
-            <div class="t-avatar t-avatar-green">J</div>
+            <div class="t-avatar t-avatar-green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
             <div>
-              <div class="t-name">Jamie L.</div>
-              <div class="t-role">Freelance Designer</div>
+              <div class="t-name">Jamie Lawson</div>
+              <div class="t-role">Freelance UX Writer</div>
+              <div class="t-company">Independent</div>
             </div>
           </div>
         </div>
@@ -2779,6 +3180,7 @@
           <input class="email-input" type="email" placeholder="your@email.com" aria-label="Email address" required>
           <button type="submit" class="btn btn-ghost email-submit-btn">Notify Me</button>
         </form>
+        <p class="email-error-msg" id="emailError">Please enter a valid email address.</p>
         <p class="email-success" id="emailSuccess" hidden>You're on the list — we'll be in touch.</p>
       </div>
     </div>
@@ -2787,21 +3189,50 @@
   <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
-      <div class="footer-brand">
-        <div class="footer-icon">F</div>
-        FitMyTime
+      <div class="footer-col">
+        <div class="footer-brand">
+          <div class="footer-icon"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="6" width="28" height="24" rx="4" fill="#fff" stroke="#0C1220" stroke-width="2"/><rect x="2" y="6" width="28" height="8" rx="4" fill="#2563EB"/><rect x="2" y="10" width="28" height="4" fill="#2563EB"/><rect x="9" y="3" width="3" height="8" rx="1.5" fill="#0C1220"/><rect x="20" y="3" width="3" height="8" rx="1.5" fill="#0C1220"/><g transform="translate(16,22)"><rect x="-6" y="-1.5" width="12" height="3" rx="1" fill="#2563EB"/><rect x="-8.5" y="-3.5" width="4" height="7" rx="1.5" fill="#2563EB"/><rect x="4.5" y="-3.5" width="4" height="7" rx="1.5" fill="#2563EB"/></g></svg></div>
+          FitMyTime
+        </div>
+        <p class="footer-tagline">Built with care for busy people who refuse to skip leg day.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Twitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+          <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+        </div>
       </div>
-      <ul class="footer-links">
-        <li><a href="#features">Features</a></li>
-        <li><a href="#how">How It Works</a></li>
-        <li><a href="#">Privacy Policy</a></li>
-        <li><a href="#">GitHub</a></li>
-      </ul>
+      <div class="footer-col">
+        <div class="footer-col-title">Product</div>
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how">How It Works</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Stay Updated</div>
+        <form class="footer-email-form" id="footerEmailForm">
+          <input class="footer-email-input" type="email" placeholder="your@email.com" aria-label="Email address" required>
+          <button type="submit" class="footer-email-btn">Subscribe</button>
+        </form>
+        <p class="footer-email-success" id="footerEmailSuccess">You're on the list!</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
       <span class="footer-copy">&copy; 2026 FitMyTime. All rights reserved.</span>
     </div>
   </footer>
 
   <!-- #12 Back to top button -->
+  <!-- Sticky mobile CTA -->
+  <div class="mobile-cta-bar" id="mobileCta">
+    <a href="#cta" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+      Add to Chrome &mdash; Free
+    </a>
+  </div>
+
   <button class="back-to-top" id="backToTop" aria-label="Back to top">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M18 15l-6-6-6 6"/>
@@ -2814,6 +3245,29 @@
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 10);
     }, { passive: true });
+
+    // ===== Scroll progress bar =====
+    const scrollProgress = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
+      scrollProgress.style.width = pct + '%';
+    }, { passive: true });
+
+    // ===== Active nav indicator =====
+    const navSections = document.querySelectorAll('#features, #how, #reviews');
+    const navLinks = document.querySelectorAll('.nav-links a.nav-text');
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-72px 0px -50% 0px', threshold: 0 });
+    navSections.forEach(s => sectionObserver.observe(s));
 
     // ===== Scroll reveal =====
     const revealObserver = new IntersectionObserver((entries) => {
@@ -3142,7 +3596,7 @@
       }
     };
 
-    function renderDemoMode(mode) {
+    function renderDemoMode(mode, animate) {
       const data = demoModes[mode];
       const body = document.getElementById('demoBrowserBody');
       const desc = document.getElementById('demoModeDesc');
@@ -3150,51 +3604,79 @@
 
       desc.textContent = data.desc;
 
-      let calHTML = '<div class="demo-cal">';
-      data.days.forEach(day => {
-        calHTML += '<div class="demo-cal-day">';
-        calHTML += '<div class="demo-cal-label">' + day.label + '</div>';
-        day.blocks.forEach(b => {
-          const cls = b.type === 'gap' ? ' gap' : b.type === 'workout' ? ' workout' : '';
-          const content = b.extra ? b.time + '<br>' + b.extra : b.time;
-          calHTML += '<div class="demo-cal-block' + cls + '" style="height:' + b.h + 'px">' + content + '</div>';
+      function updateContent() {
+        let calHTML = '<div class="demo-cal">';
+        data.days.forEach(day => {
+          calHTML += '<div class="demo-cal-day">';
+          calHTML += '<div class="demo-cal-label">' + day.label + '</div>';
+          day.blocks.forEach(b => {
+            const cls = b.type === 'gap' ? ' gap' : b.type === 'workout' ? ' workout' : '';
+            const content = b.extra ? b.time + '<br>' + b.extra : b.time;
+            calHTML += '<div class="demo-cal-block' + cls + '" style="height:' + b.h + 'px">' + content + '</div>';
+          });
+          calHTML += '</div>';
         });
         calHTML += '</div>';
-      });
-      calHTML += '</div>';
 
-      const p = data.popup;
-      calHTML += '<div class="demo-popup">'
-        + '<div class="demo-popup-header"><div class="demo-popup-icon">F</div><div class="demo-popup-title">FitMyTime</div></div>'
-        + '<div class="demo-popup-badge">' + p.badge + '</div>'
-        + '<div class="demo-popup-workout">' + p.workout + '</div>'
-        + '<div class="demo-popup-meta">' + p.meta + '</div>'
-        + '<div class="demo-popup-btn">Add to Calendar</div>'
-        + '</div>';
+        const p = data.popup;
+        calHTML += '<div class="demo-popup">'
+          + '<div class="demo-popup-header"><div class="demo-popup-icon">F</div><div class="demo-popup-title">FitMyTime</div></div>'
+          + '<div class="demo-popup-badge">' + p.badge + '</div>'
+          + '<div class="demo-popup-workout">' + p.workout + '</div>'
+          + '<div class="demo-popup-meta">' + p.meta + '</div>'
+          + '<div class="demo-popup-btn">Add to Calendar</div>'
+          + '</div>';
 
-      body.innerHTML = calHTML;
+        body.innerHTML = calHTML;
+      }
+
+      if (animate) {
+        body.classList.add('fading');
+        setTimeout(() => {
+          updateContent();
+          body.classList.remove('fading');
+        }, 300);
+      } else {
+        updateContent();
+      }
     }
 
     // Init default mode
-    renderDemoMode('lunchtime');
+    renderDemoMode('lunchtime', false);
 
     // Mode pill click handlers
     document.querySelectorAll('.demo-mode-pill').forEach(pill => {
       pill.addEventListener('click', () => {
         document.querySelectorAll('.demo-mode-pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
-        renderDemoMode(pill.dataset.mode);
+        renderDemoMode(pill.dataset.mode, true);
       });
     });
 
-    // ===== Email capture form =====
+    // ===== Email capture form with validation =====
     const emailForm = document.getElementById('emailForm');
     const emailSuccess = document.getElementById('emailSuccess');
+    const emailError = document.getElementById('emailError');
     if (emailForm) {
+      const emailInput = emailForm.querySelector('.email-input');
       emailForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        if (!emailInput.validity.valid) {
+          emailInput.classList.add('error');
+          emailError.classList.add('visible');
+          emailInput.addEventListener('animationend', () => {
+            emailInput.classList.remove('error');
+          }, { once: true });
+          return;
+        }
+        emailError.classList.remove('visible');
         emailForm.style.display = 'none';
         emailSuccess.hidden = false;
+      });
+      emailInput.addEventListener('input', () => {
+        if (emailInput.validity.valid) {
+          emailError.classList.remove('visible');
+        }
       });
     }
 
@@ -3214,6 +3696,73 @@
         ripple.addEventListener('animationend', () => ripple.remove());
       });
     });
+
+    // ===== Cursor-follow hero glow =====
+    (function() {
+      const heroGlow = document.getElementById('heroGlow');
+      const heroSection = document.querySelector('.hero');
+      if (!heroGlow || !heroSection) return;
+      // Only enable on devices with hover and without reduced-motion preference
+      const canHover = window.matchMedia('(hover: hover)').matches;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!canHover || prefersReduced) return;
+
+      heroSection.addEventListener('mousemove', (e) => {
+        const rect = heroSection.getBoundingClientRect();
+        const x = e.clientX - rect.left - 250;
+        const y = e.clientY - rect.top - 250;
+        heroGlow.style.left = x + 'px';
+        heroGlow.style.top = y + 'px';
+        heroGlow.style.opacity = '0.06';
+      });
+      heroSection.addEventListener('mouseleave', () => {
+        heroGlow.style.opacity = '0';
+      });
+    })();
+
+    // ===== Sticky mobile CTA =====
+    const mobileCta = document.getElementById('mobileCta');
+    const heroForCta = document.querySelector('.hero');
+    if (mobileCta && heroForCta) {
+      const heroObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          mobileCta.classList.toggle('visible', !entry.isIntersecting);
+        });
+      }, { threshold: 0 });
+      heroObserver.observe(heroForCta);
+    }
+
+    // ===== Dark mode toggle =====
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      });
+    }
+
+    // ===== Footer email form =====
+    const footerForm = document.getElementById('footerEmailForm');
+    const footerSuccess = document.getElementById('footerEmailSuccess');
+    if (footerForm) {
+      footerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = footerForm.querySelector('.footer-email-input');
+        if (!input.validity.valid) {
+          input.style.borderColor = 'var(--red)';
+          setTimeout(() => { input.style.borderColor = ''; }, 1500);
+          return;
+        }
+        footerForm.style.display = 'none';
+        footerSuccess.classList.add('visible');
+      });
+    }
   </script>
 
 </body>

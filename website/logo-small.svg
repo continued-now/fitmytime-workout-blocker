@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- FitMyTime Logo — small/favicon version -->
+
+  <!-- Calendar body -->
+  <rect x="2" y="6" width="28" height="24" rx="4" fill="#fff" stroke="#0C1220" stroke-width="2"/>
+
+  <!-- Calendar top bar -->
+  <rect x="2" y="6" width="28" height="8" rx="4" fill="#2563EB"/>
+  <rect x="2" y="10" width="28" height="4" fill="#2563EB"/>
+
+  <!-- Calendar rings -->
+  <rect x="9" y="3" width="3" height="8" rx="1.5" fill="#0C1220"/>
+  <rect x="20" y="3" width="3" height="8" rx="1.5" fill="#0C1220"/>
+
+  <!-- Dumbbell centered in body -->
+  <g transform="translate(16, 22)">
+    <!-- bar -->
+    <rect x="-6" y="-1.5" width="12" height="3" rx="1" fill="#2563EB"/>
+    <!-- left weight -->
+    <rect x="-8.5" y="-3.5" width="4" height="7" rx="1.5" fill="#2563EB"/>
+    <!-- right weight -->
+    <rect x="4.5" y="-3.5" width="4" height="7" rx="1.5" fill="#2563EB"/>
+  </g>
+</svg>
