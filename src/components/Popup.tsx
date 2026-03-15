@@ -178,6 +178,12 @@ export const Popup: React.FC = () => {
     }
   }, [activeTab, isAuthenticated]);
 
+  useEffect(() => {
+    if (!errorMessage) return;
+    const t = setTimeout(() => setErrorMessage(''), 4000);
+    return () => clearTimeout(t);
+  }, [errorMessage]);
+
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -318,7 +324,7 @@ export const Popup: React.FC = () => {
   // #12 Scan with diff count
   const handleTriggerScan = async () => {
     if (isScanning) return;
-    const prevCount = visibleUpcoming.length;
+    const prevIds = new Set(visibleUpcoming.map(w => w.id));
     try {
       setIsScanning(true);
       setErrorMessage('');
@@ -330,7 +336,7 @@ export const Popup: React.FC = () => {
         setUpcomingWorkouts(workoutsResponse.data);
         const currentSkipped = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
         const newVisible = workoutsResponse.data.filter((w: CalendarEvent) => !currentSkipped.has(w.id));
-        const added = newVisible.length - prevCount;
+        const added = newVisible.filter((w: CalendarEvent) => !prevIds.has(w.id)).length;
         if (added > 0) setScanAddedCount(added);
       }
       const historyResponse = await chrome.runtime.sendMessage({ type: 'GET_WORKOUT_HISTORY' });
@@ -393,6 +399,15 @@ export const Popup: React.FC = () => {
     try {
       const start = new Date(rescheduling.newStart);
       const end = new Date(rescheduling.newEnd);
+      const now = new Date();
+      if (start < now) {
+        setErrorMessage('Cannot reschedule to a past time.');
+        return;
+      }
+      if (end <= start) {
+        setErrorMessage('End time must be after start time.');
+        return;
+      }
       const duration = Math.round((end.getTime() - start.getTime()) / 60000);
       await chrome.runtime.sendMessage({
         type: 'RESCHEDULE_WORKOUT',

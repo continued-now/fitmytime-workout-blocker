@@ -3,7 +3,8 @@ import { StorageManager } from '../utils/storage';
 export class GoogleAuthService {
   private static instance: GoogleAuthService;
   private storageManager: StorageManager;
-  
+  private lastVerifiedAt: number = 0;
+
   private constructor() {
     this.storageManager = StorageManager.getInstance();
   }
@@ -63,11 +64,17 @@ export class GoogleAuthService {
 
   private async verifyToken(token: string): Promise<boolean> {
     try {
+      if (Date.now() - this.lastVerifiedAt < 3600000) {
+        return true;
+      }
       const response = await fetch(
         `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`
       );
+      if (response.ok) {
+        this.lastVerifiedAt = Date.now();
+      }
       return response.ok;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

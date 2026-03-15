@@ -12,6 +12,7 @@ class BackgroundService {
   private workoutEngine: WorkoutEngine;
   private storageManager: StorageManager;
   private authService: GoogleAuthService;
+  private isScanningBackground = false;
 
   constructor() {
     this.calendarService = CalendarService.getInstance();
@@ -79,6 +80,11 @@ class BackgroundService {
   }
 
   private async performDailyScan() {
+    if (this.isScanningBackground) {
+      console.log('Daily scan already in progress, skipping');
+      return;
+    }
+    this.isScanningBackground = true;
     try {
       console.log('Starting daily calendar scan...');
 
@@ -129,6 +135,8 @@ class BackgroundService {
       console.log('Daily calendar scan completed successfully');
     } catch (error) {
       console.error('Error during daily calendar scan:', error);
+    } finally {
+      this.isScanningBackground = false;
     }
   }
 
@@ -146,8 +154,8 @@ class BackgroundService {
             // Try to delete the calendar event
             try {
               await (this.calendarService as any).deleteEvent(workout.id, preferences?.targetCalendarId);
-            } catch {
-              // Silently ignore — event may not exist
+            } catch (deleteError) {
+              console.warn(`Failed to delete calendar event for workout ${workout.id}:`, deleteError);
             }
           }
         }
@@ -202,23 +210,35 @@ class BackgroundService {
         colorId
       );
 
-      // Add to workout history
-      await this.storageManager.addWorkoutToHistory({
-        id: eventId,
-        date: startTime.toISOString(),
-        type: suggestion.type,
-        exercises: suggestion.exercises,
-        duration: suggestion.duration,
-        completed: false,
-        notes: `Intensity: ${suggestion.intensity}`,
-        targetMuscleGroups: suggestion.targetMuscleGroups
-      });
+      // Add to workout history (with rollback on failure)
+      try {
+        await this.storageManager.addWorkoutToHistory({
+          id: eventId,
+          date: startTime.toISOString(),
+          type: suggestion.type,
+          exercises: suggestion.exercises,
+          duration: suggestion.duration,
+          completed: false,
+          notes: `Intensity: ${suggestion.intensity}`,
+          targetMuscleGroups: suggestion.targetMuscleGroups
+        });
+      } catch (historyError) {
+        // Rollback: delete the calendar event
+        try {
+          await (this.calendarService as any).deleteEvent(eventId, preferences?.targetCalendarId);
+        } catch {}
+        throw historyError;
+      }
 
       // Schedule notification before workout using user preference
-      const alarmName = `workout_notify_${eventId}`;
-      const notifyAt = startTime.getTime() - leadMinutes * 60 * 1000;
-      if (notifyAt > Date.now()) {
-        chrome.alarms.create(alarmName, { when: notifyAt });
+      try {
+        const alarmName = `workout_notify_${eventId}`;
+        const notifyAt = startTime.getTime() - leadMinutes * 60 * 1000;
+        if (notifyAt > Date.now()) {
+          chrome.alarms.create(alarmName, { when: notifyAt });
+        }
+      } catch (alarmError) {
+        console.warn('Failed to create alarm, workout still scheduled:', alarmError);
       }
 
       console.log(`Scheduled workout: ${eventTitle} at ${startTime.toLocaleString()}`);
@@ -443,6 +463,15 @@ class BackgroundService {
           );
           const rStart = new Date(message.newStartTime);
           const rEnd = new Date(message.newEndTime);
+          const now = new Date();
+          if (rStart < now) {
+            sendResponse({ success: false, error: 'Cannot reschedule to the past' });
+            break;
+          }
+          if (rEnd <= rStart) {
+            sendResponse({ success: false, error: 'End time must be after start time' });
+            break;
+          }
           const rPRs = await this.storageManager.getPersonalRecords();
           const rTrackerUrl = this.generateTrackerUrl(rSuggestion, rPRs);
           const rEstCal = rSuggestion.duration * (rSuggestion.intensity === 'high' ? 8 : rSuggestion.intensity === 'medium' ? 6 : 4);

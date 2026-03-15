@@ -89,6 +89,9 @@ export const PreferencesForm: React.FC<PreferencesFormProps> = ({ preferences, o
             <button onClick={() => removeTimeWindow(index)} className="btn-remove">
               Remove
             </button>
+            {window.startTime >= window.endTime && (
+              <span className="time-window-error">Start must be before end</span>
+            )}
           </div>
         ))}
         <button onClick={addTimeWindow} className="btn-secondary">
@@ -128,9 +131,15 @@ export const PreferencesForm: React.FC<PreferencesFormProps> = ({ preferences, o
               checked={preferences.equipment?.includes(equipment)}
               onChange={(e) => {
                 const current = preferences.equipment || [];
-                update('equipment', e.target.checked
-                  ? [...current, equipment]
-                  : current.filter(eq => eq !== equipment));
+                if (e.target.checked) {
+                  if (equipment === 'none') {
+                    update('equipment', ['none']);
+                  } else {
+                    update('equipment', [...current.filter(eq => eq !== 'none'), equipment]);
+                  }
+                } else {
+                  update('equipment', current.filter(eq => eq !== equipment));
+                }
               }}
             />
             {equipment.charAt(0).toUpperCase() + equipment.slice(1)}

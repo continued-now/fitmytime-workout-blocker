@@ -63,6 +63,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) 
 
   const handleSavePreferences = async () => {
     setErrorMessage('');
+    // Validate preferences
+    if (!preferences.workoutDays || preferences.workoutDays.length === 0) {
+      setErrorMessage('Please select at least one workout day.');
+      return;
+    }
+    if (!preferences.timeWindows || preferences.timeWindows.length === 0) {
+      setErrorMessage('Please add at least one time window.');
+      return;
+    }
+    if (preferences.minDuration && preferences.maxDuration && preferences.minDuration >= preferences.maxDuration) {
+      setErrorMessage('Minimum duration must be less than maximum duration.');
+      return;
+    }
     try {
       await chrome.runtime.sendMessage({
         type: 'SET_USER_PREFERENCES',

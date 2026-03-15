@@ -30,7 +30,8 @@ export class WorkoutEngine {
     const workoutType = this.determineWorkoutType(lastWorkout, goal);
 
     // Get exercises based on type, goal, and equipment
-    const exercises = this.getExercises(workoutType, goal, equipment, restrictions, duration, customExercises);
+    let exercises = this.getExercises(workoutType, goal, equipment, restrictions, duration, customExercises);
+    exercises = this.deprioritizeRecent(exercises, history);
     
     // Determine intensity based on goal and history (including ratings)
     const intensity = this.determineIntensity(goal, lastWorkout, history);
@@ -159,7 +160,14 @@ export class WorkoutEngine {
     exercises = this.adjustForGoal(exercises, goal);
     
     // Select appropriate number of exercises based on duration
-    const targetExerciseCount = Math.max(3, Math.floor(duration / 10));
+    let targetExerciseCount: number;
+    if (type === 'cardio' || type === 'hiit') {
+      // Cardio/HIIT: fewer, longer exercises
+      targetExerciseCount = Math.max(2, Math.floor(duration / 15));
+    } else {
+      // Strength and others: more, shorter exercises
+      targetExerciseCount = Math.max(3, Math.floor(duration / 8));
+    }
     exercises = this.selectExercises(exercises, targetExerciseCount);
     
     return exercises;
@@ -218,8 +226,28 @@ export class WorkoutEngine {
   }
 
   private selectExercises(exercises: Exercise[], count: number): Exercise[] {
-    const shuffled = [...exercises].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+    const arr = [...exercises];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, count);
+  }
+
+  private deprioritizeRecent(exercises: Exercise[], history: WorkoutHistory[]): Exercise[] {
+    const recentNames = new Set<string>();
+    const recentWorkouts = history.filter(w => w.completed).slice(0, 3);
+    for (const w of recentWorkouts) {
+      for (const ex of w.exercises) {
+        recentNames.add(ex.name);
+      }
+    }
+    // Sort: non-recent first, recent last
+    return [...exercises].sort((a, b) => {
+      const aRecent = recentNames.has(a.name) ? 1 : 0;
+      const bRecent = recentNames.has(b.name) ? 1 : 0;
+      return aRecent - bRecent;
+    });
   }
 
   private determineIntensity(goal: FitnessGoal, lastWorkout?: WorkoutHistory, history?: WorkoutHistory[]): 'low' | 'medium' | 'high' {
@@ -229,7 +257,14 @@ export class WorkoutEngine {
     if (history && history.length > 0) {
       const rated = history.filter(w => w.completed && w.rating !== undefined).slice(0, 5);
       if (rated.length >= 2) {
-        const avg = rated.reduce((sum, w) => sum + (w.rating ?? 3), 0) / rated.length;
+        let weightedSum = 0;
+        let weightTotal = 0;
+        for (let i = 0; i < rated.length; i++) {
+          const weight = Math.pow(0.7, i); // Most recent = weight 1, next = 0.7, then 0.49...
+          weightedSum += (rated[i].rating ?? 3) * weight;
+          weightTotal += weight;
+        }
+        const avg = weightedSum / weightTotal;
         if (avg > 3.5) return 'high';   // workouts feel easy → push harder
         if (avg < 2.5) return 'low';    // workouts feel tough → ease off
         return 'medium';

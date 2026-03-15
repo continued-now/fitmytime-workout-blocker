@@ -28,6 +28,17 @@ export class CalendarService {
 
     const response = await fetch(url, { ...options, headers });
 
+    if (response.status === 429 || response.status === 403) {
+      const retryAfter = parseInt(response.headers.get('Retry-After') || '1', 10);
+      const waitMs = Math.min(retryAfter * 1000, 5000);
+      await new Promise(r => setTimeout(r, waitMs));
+      const retryResponse = await fetch(url, { ...options, headers });
+      if (retryResponse.status === 429 || retryResponse.status === 403) {
+        throw new Error('Google Calendar rate limit reached. Please try again in a few minutes.');
+      }
+      return retryResponse;
+    }
+
     if (response.status === 401) {
       // Remove stale cached token and re-authenticate
       await new Promise<void>((resolve) => {
@@ -43,6 +54,10 @@ export class CalendarService {
       };
 
       const retryResponse = await fetch(url, { ...options, headers: retryHeaders });
+
+      if (retryResponse.status === 429 || retryResponse.status === 403) {
+        throw new Error('Google Calendar rate limit reached. Please try again in a few minutes.');
+      }
 
       if (!retryResponse.ok) {
         throw new Error(`Request failed after token refresh: ${retryResponse.statusText}`);
