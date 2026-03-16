@@ -8,7 +8,6 @@ module.exports = (env, argv) => {
     entry: {
       background: './src/background.ts',
       popup: './src/popup.tsx',
-      content: './src/content.ts',
       modal: './src/modal.tsx'
     },
     

@@ -11,7 +11,7 @@
   <meta property="og:description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://fitmytime.app">
-  <meta property="og:image" content="/og-image.png">
+  <!-- og:image omitted until actual asset exists -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="FitMyTime — Smart Workout Scheduling for Busy People">
   <meta name="twitter:description" content="FitMyTime automatically finds gaps in your Google Calendar and schedules workouts that fit your goals, equipment, and schedule. Free Chrome extension.">
@@ -3207,7 +3207,7 @@
           <li><a href="#how">How It Works</a></li>
           <li><a href="#reviews">Reviews</a></li>
           <li><a href="#faq">FAQ</a></li>
-          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -3255,7 +3255,7 @@
     }, { passive: true });
 
     // ===== Active nav indicator =====
-    const navSections = document.querySelectorAll('#features, #how, #reviews');
+    const navSections = document.querySelectorAll('#features, #how, #reviews, #comparison, #stats-section, #faq');
     const navLinks = document.querySelectorAll('.nav-links a.nav-text');
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {

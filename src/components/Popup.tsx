@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   CalendarEvent,
@@ -14,6 +14,17 @@ import {
 } from '../types';
 import { OnboardingModal } from './OnboardingModal';
 import { PreferencesForm } from './PreferencesForm';
+
+// --------------- Chrome message wrapper ---------------
+
+function sendMessageWithTimeout(message: any, timeoutMs = 8000): Promise<any> {
+  return Promise.race([
+    chrome.runtime.sendMessage(message),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Extension not responding. Try reloading.')), timeoutMs)
+    ),
+  ]);
+}
 
 // --------------- Local helpers ---------------
 
@@ -116,8 +127,14 @@ export const Popup: React.FC = () => {
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
+  // ---- mounted ref for unmount cleanup ----
+  const mountedRef = useRef(true);
+
   // ---- effects ----
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+    return () => { mountedRef.current = false; };
+  }, []);
 
   // Cleanup skip timer on unmount
   useEffect(() => {
@@ -172,8 +189,8 @@ export const Popup: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === 'settings' && isAuthenticated) {
-      chrome.runtime.sendMessage({ type: 'GET_CALENDARS' })
-        .then((res) => { if (res?.success && Array.isArray(res.data)) setAvailableCalendars(res.data); })
+      sendMessageWithTimeout({ type: 'GET_CALENDARS' })
+        .then((res) => { if (mountedRef.current && res?.success && Array.isArray(res.data)) setAvailableCalendars(res.data); })
         .catch(() => {});
     }
   }, [activeTab, isAuthenticated]);
@@ -192,6 +209,7 @@ export const Popup: React.FC = () => {
         'isOnboarded', 'lastCalendarScan', 'currentStreak', 'longestStreak',
         'unlockedBadges', 'personalRecords', 'customExercises',
       ]);
+      if (!mountedRef.current) return;
       const onboarded = storageData.isOnboarded || false;
       setIsOnboarded(onboarded);
       setLastCalendarScan(storageData.lastCalendarScan);
@@ -205,23 +223,28 @@ export const Popup: React.FC = () => {
 
       if (!onboarded) { setIsLoading(false); return; }
 
-      const authResponse = await chrome.runtime.sendMessage({ type: 'CHECK_AUTH_STATUS' });
+      const authResponse = await sendMessageWithTimeout({ type: 'CHECK_AUTH_STATUS' });
+      if (!mountedRef.current) return;
       if (authResponse.success) setIsAuthenticated(authResponse.data.isAuthenticated);
 
-      const workoutsResponse = await chrome.runtime.sendMessage({ type: 'GET_UPCOMING_WORKOUTS' });
+      const workoutsResponse = await sendMessageWithTimeout({ type: 'GET_UPCOMING_WORKOUTS' });
+      if (!mountedRef.current) return;
       if (workoutsResponse.success) setUpcomingWorkouts(workoutsResponse.data);
       else setErrorMessage('Failed to load upcoming workouts.');
 
-      const historyResponse = await chrome.runtime.sendMessage({ type: 'GET_WORKOUT_HISTORY' });
+      const historyResponse = await sendMessageWithTimeout({ type: 'GET_WORKOUT_HISTORY' });
+      if (!mountedRef.current) return;
       if (historyResponse.success) setWorkoutHistory(historyResponse.data);
 
-      const prefsResponse = await chrome.runtime.sendMessage({ type: 'GET_USER_PREFERENCES' });
+      const prefsResponse = await sendMessageWithTimeout({ type: 'GET_USER_PREFERENCES' });
+      if (!mountedRef.current) return;
       if (prefsResponse.success) setPreferences(prefsResponse.data);
     } catch (error: any) {
+      if (!mountedRef.current) return;
       setErrorMessage('Failed to connect to the extension. Please try reloading.');
       console.error('Error loading data:', error);
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   };
 
@@ -230,14 +253,14 @@ export const Popup: React.FC = () => {
     setTimeout(() => setSuccessMessage(''), 2500);
   };
 
-  // ---- derived ----
-  const skippedIds = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
+  // ---- derived (memoized) ----
+  const skippedIds = useMemo(() => new Set(workoutHistory.filter(h => h.skipped).map(h => h.id)), [workoutHistory]);
   // #1 — optimistically hide pending-skip workout from list
-  const visibleUpcoming = upcomingWorkouts.filter(w => !skippedIds.has(w.id) && w.id !== pendingSkipId);
+  const visibleUpcoming = useMemo(() => upcomingWorkouts.filter(w => !skippedIds.has(w.id) && w.id !== pendingSkipId), [upcomingWorkouts, skippedIds, pendingSkipId]);
 
-  const completedThisWeek = workoutHistory.filter(w =>
+  const completedThisWeek = useMemo(() => workoutHistory.filter(w =>
     w.completed && (Date.now() - new Date(w.date).getTime()) / 86400000 <= 7
-  ).length;
+  ).length, [workoutHistory]);
 
   const formatCountdown = (startTime: string) => {
     const diff = new Date(startTime).getTime() - Date.now();
@@ -258,7 +281,7 @@ export const Popup: React.FC = () => {
   const handleRateWorkout = async () => {
     if (!pendingRating) return;
     try {
-      const response = await chrome.runtime.sendMessage({
+      const response = await sendMessageWithTimeout({
         type: 'RATE_WORKOUT',
         workoutId: pendingRating.workoutId,
         rating: pendingRating.rating,
@@ -308,7 +331,7 @@ export const Popup: React.FC = () => {
 
   const executeSkip = async (workoutId: string) => {
     try {
-      await chrome.runtime.sendMessage({ type: 'SKIP_WORKOUT', workoutId });
+      await sendMessageWithTimeout({ type: 'SKIP_WORKOUT', workoutId });
       await loadData();
     } catch {
       setErrorMessage('Failed to skip workout. Please try again.');
@@ -329,9 +352,9 @@ export const Popup: React.FC = () => {
       setIsScanning(true);
       setErrorMessage('');
       setScanAddedCount(null);
-      await chrome.runtime.sendMessage({ type: 'TRIGGER_CALENDAR_SCAN' });
+      await sendMessageWithTimeout({ type: 'TRIGGER_CALENDAR_SCAN' });
 
-      const workoutsResponse = await chrome.runtime.sendMessage({ type: 'GET_UPCOMING_WORKOUTS' });
+      const workoutsResponse = await sendMessageWithTimeout({ type: 'GET_UPCOMING_WORKOUTS' });
       if (workoutsResponse.success) {
         setUpcomingWorkouts(workoutsResponse.data);
         const currentSkipped = new Set(workoutHistory.filter(h => h.skipped).map(h => h.id));
@@ -339,7 +362,7 @@ export const Popup: React.FC = () => {
         const added = newVisible.filter((w: CalendarEvent) => !prevIds.has(w.id)).length;
         if (added > 0) setScanAddedCount(added);
       }
-      const historyResponse = await chrome.runtime.sendMessage({ type: 'GET_WORKOUT_HISTORY' });
+      const historyResponse = await sendMessageWithTimeout({ type: 'GET_WORKOUT_HISTORY' });
       if (historyResponse.success) setWorkoutHistory(historyResponse.data);
 
       const storageData = await chrome.storage.local.get(['lastCalendarScan']);
@@ -355,7 +378,7 @@ export const Popup: React.FC = () => {
   const handleDisconnect = async () => {
     setIsDisconnecting(true);
     try {
-      await chrome.runtime.sendMessage({ type: 'REVOKE_TOKEN' });
+      await sendMessageWithTimeout({ type: 'REVOKE_TOKEN' });
       setIsAuthenticated(false);
       setConfirmDisconnect(false);
       showSuccess('Google Calendar disconnected.');
@@ -370,7 +393,7 @@ export const Popup: React.FC = () => {
     setIsConnecting(true);
     setErrorMessage('');
     try {
-      const response = await chrome.runtime.sendMessage({ type: 'AUTHENTICATE_GOOGLE' });
+      const response = await sendMessageWithTimeout({ type: 'AUTHENTICATE_GOOGLE' });
       if (response.success) setIsAuthenticated(true);
       else setErrorMessage('Authentication failed. Please try again.');
     } catch {
@@ -384,7 +407,12 @@ export const Popup: React.FC = () => {
     try {
       const prefsToSave = { ...editPreferences };
       if (editTargetCalendarId) prefsToSave.targetCalendarId = editTargetCalendarId;
-      await chrome.runtime.sendMessage({ type: 'SET_USER_PREFERENCES', preferences: prefsToSave as UserPreferences });
+      // Validate time windows
+      if (prefsToSave.timeWindows?.some(tw => tw.startTime >= tw.endTime)) {
+        setErrorMessage('Fix time window errors before saving.');
+        return;
+      }
+      await sendMessageWithTimeout({ type: 'SET_USER_PREFERENCES', preferences: prefsToSave as UserPreferences });
       setPreferences(prefsToSave as UserPreferences);
       setIsEditingSettings(false);
       showSuccess('Preferences saved.');
@@ -409,12 +437,13 @@ export const Popup: React.FC = () => {
         return;
       }
       const duration = Math.round((end.getTime() - start.getTime()) / 60000);
-      await chrome.runtime.sendMessage({
+      await sendMessageWithTimeout({
         type: 'RESCHEDULE_WORKOUT',
         workoutId: rescheduling.workoutId,
         newStartTime: start.toISOString(),
         newEndTime: end.toISOString(),
         duration,
+        exercises: swappedExercises[rescheduling.workoutId],
       });
       setRescheduling(null);
       setFreeSlots([]);
@@ -442,12 +471,12 @@ export const Popup: React.FC = () => {
     setFreeSlots([]);
     setIsFetchingSlots(true);
     try {
-      const res = await chrome.runtime.sendMessage({ type: 'GET_FREE_SLOTS' });
+      const res = await sendMessageWithTimeout({ type: 'GET_FREE_SLOTS' });
       if (res?.success && Array.isArray(res.data)) {
         setFreeSlots(res.data.slice(0, 5));
       }
     } catch {
-      // no free slots available — fall back to manual picker only
+      setErrorMessage('Could not load available time slots.');
     } finally {
       setIsFetchingSlots(false);
     }
@@ -468,7 +497,7 @@ export const Popup: React.FC = () => {
 
   const handleDeleteCustomExercise = async (name: string) => {
     try {
-      await chrome.runtime.sendMessage({ type: 'DELETE_CUSTOM_EXERCISE', name });
+      await sendMessageWithTimeout({ type: 'DELETE_CUSTOM_EXERCISE', name });
       setCustomExercises(prev => prev.filter(ex => ex.name !== name));
       showSuccess('Exercise removed.');
     } catch {
@@ -479,7 +508,7 @@ export const Popup: React.FC = () => {
   const handleAddCustomExercise = async () => {
     if (!newExercise.name || !newExercise.category) return;
     try {
-      await chrome.runtime.sendMessage({ type: 'ADD_CUSTOM_EXERCISE', exercise: newExercise });
+      await sendMessageWithTimeout({ type: 'ADD_CUSTOM_EXERCISE', exercise: newExercise });
       setCustomExercises(prev => [...prev, newExercise as CustomExercise]);
       setNewExercise({});
       setShowCustomExerciseForm(false);
@@ -1017,7 +1046,10 @@ export const Popup: React.FC = () => {
                   <div
                     key={workout.id}
                     className={`history-item${expandedHistoryId === workout.id ? ' expanded' : ''}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setExpandedHistoryId(expandedHistoryId === workout.id ? null : workout.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedHistoryId(expandedHistoryId === workout.id ? null : workout.id); } }}
                   >
                     <div className="history-header">
                       <span className={`status ${workout.completed ? 'completed' : workout.skipped ? 'skipped' : 'pending'}`}>

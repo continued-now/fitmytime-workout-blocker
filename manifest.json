@@ -19,19 +19,7 @@
     "default_popup": "popup.html",
     "default_title": "FitMyTime"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["modal.html", "modal.js", "modal.css"],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "oauth2": {
+"oauth2": {
     "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar",

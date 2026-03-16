@@ -346,7 +346,8 @@
 }
 
 .btn-complete:disabled {
-  opacity: 0.6;
+  background: #93C5FD;
+  color: #E0E7FF;
   cursor: not-allowed;
   transform: none;
 }
@@ -1232,7 +1233,8 @@
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  background: #93C5FD;
+  color: #E0E7FF;
   cursor: not-allowed;
   transform: none;
 }
@@ -1250,7 +1252,7 @@
 }
 
 .btn-secondary:hover  { background: #5a6268; }
-.btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-secondary:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; }
 
 .btn-remove {
   background: #dc3545;
@@ -1729,6 +1731,18 @@
 
 .in-progress-actions .btn-skip {
   text-align: center;
+}
+
+/* Focus-visible states for accessibility */
+.filter-btn:focus-visible,
+.btn-skip:focus-visible,
+.btn-reschedule:focus-visible,
+.btn-complete:focus-visible,
+.btn-markdone:focus-visible,
+.btn-swap:focus-visible,
+.show-more-btn:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
 }
 
 /* Responsive */

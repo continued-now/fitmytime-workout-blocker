@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — FitMyTime</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1e293b;
+      line-height: 1.7;
+      background: #ffffff;
+      padding: 0 20px;
+    }
+    .container { max-width: 680px; margin: 0 auto; padding: 48px 0 80px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .updated { font-size: 13px; color: #6b7280; margin-bottom: 32px; }
+    h2 { font-size: 18px; font-weight: 600; margin: 28px 0 10px; color: #0f172a; }
+    p, li { font-size: 15px; color: #374151; margin-bottom: 12px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    a { color: #2563EB; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .back { display: inline-block; margin-bottom: 24px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back">&larr; Back to FitMyTime</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: March 2026</p>
+
+    <h2>Overview</h2>
+    <p>FitMyTime is a Chrome extension that helps you schedule workouts by reading your Google Calendar. Your privacy matters to us, and we are committed to being transparent about how your data is used.</p>
+
+    <h2>Data We Access</h2>
+    <ul>
+      <li><strong>Google Calendar data</strong> — We read your calendar events to find free time slots for workouts. We also create workout events on your calendar.</li>
+      <li><strong>Workout preferences</strong> — Your fitness goals, equipment, time windows, and other settings are stored locally in your browser using Chrome's storage API.</li>
+      <li><strong>Workout history</strong> — Records of suggested, completed, and skipped workouts are stored locally in your browser.</li>
+    </ul>
+
+    <h2>How Your Data Is Used</h2>
+    <p>All data processing happens locally in your browser. We do not send your calendar data, workout history, or preferences to any external server. The only network requests made are directly to Google's Calendar API using your authenticated session.</p>
+
+    <h2>Data Storage</h2>
+    <p>All user data is stored locally using Chrome's built-in storage APIs (<code>chrome.storage.local</code> and <code>chrome.storage.sync</code>). No data is stored on external servers.</p>
+
+    <h2>Third-Party Services</h2>
+    <p>FitMyTime connects to Google Calendar via the Google Calendar API. Your use of Google services is subject to <a href="https://policies.google.com/privacy">Google's Privacy Policy</a>.</p>
+
+    <h2>Data Deletion</h2>
+    <p>Uninstalling the FitMyTime extension removes all locally stored data. Workout events created on your Google Calendar will remain unless you delete them manually.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>We may update this policy from time to time. Changes will be reflected on this page with an updated date.</p>
+
+    <h2>Contact</h2>
+    <p>If you have questions about this privacy policy, please open an issue on our GitHub repository or contact us through the Chrome Web Store listing.</p>
+  </div>
+</body>
+</html>

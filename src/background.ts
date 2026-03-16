@@ -454,13 +454,15 @@ class BackgroundService {
           } catch {
             // Silently ignore if deletion fails
           }
-          // Create new event at new time
-          const rSuggestion = await this.workoutEngine.suggestWorkout(
-            message.duration,
-            prefs!.fitnessGoal,
-            prefs!.equipment,
-            [...(prefs!.restrictions || []), ...(prefs!.dislikedExercises || [])]
-          );
+          // Use swapped exercises if provided, otherwise generate new suggestion
+          const rSuggestion = message.exercises?.length > 0
+            ? { exercises: message.exercises, type: message.exercises[0]?.muscleGroup || 'full_body', duration: message.duration, intensity: 'medium', targetMuscleGroups: [] as string[] }
+            : await this.workoutEngine.suggestWorkout(
+                message.duration,
+                prefs!.fitnessGoal,
+                prefs!.equipment,
+                [...(prefs!.restrictions || []), ...(prefs!.dislikedExercises || [])]
+              );
           const rStart = new Date(message.newStartTime);
           const rEnd = new Date(message.newEndTime);
           const now = new Date();
